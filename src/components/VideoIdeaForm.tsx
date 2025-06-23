@@ -67,10 +67,15 @@ export const VideoIdeaForm = () => {
     setLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       // Check if user has enough credits
       const { data: profile } = await supabase
         .from('profiles')
         .select('credits')
+        .eq('id', user.id)
         .single();
 
       if (!profile || profile.credits < 1) {
@@ -91,6 +96,7 @@ export const VideoIdeaForm = () => {
       const { error } = await supabase
         .from('video_ideas')
         .insert({
+          user_id: user.id,
           idea_text: ideaText,
           use_ai_voice: useAiVoice,
           voice_file_url: voiceFileUrl,
@@ -101,18 +107,18 @@ export const VideoIdeaForm = () => {
       if (error) throw error;
 
       // Deduct credit
-      await supabase.rpc('increment', {
-        table_name: 'profiles',
-        row_id: (await supabase.auth.getUser()).data.user?.id,
-        column_name: 'credits',
-        x: -1
-      });
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ credits: profile.credits - 1 })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
 
       // Record credit transaction
       await supabase
         .from('credit_transactions')
         .insert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           amount: -1,
           transaction_type: 'usage',
           description: 'Video generation'
