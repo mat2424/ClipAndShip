@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } = from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const PRICING_TIERS = [
   { credits: 10, price: 30, popular: false },
