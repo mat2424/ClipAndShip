@@ -9,7 +9,102 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          stripe_session_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          stripe_session_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          stripe_session_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          credits: number
+          email: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          email: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          email?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      video_ideas: {
+        Row: {
+          created_at: string
+          id: string
+          idea_text: string
+          n8n_webhook_id: string | null
+          selected_platforms: string[]
+          status: string
+          updated_at: string
+          use_ai_voice: boolean
+          user_id: string
+          video_url: string | null
+          voice_file_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idea_text: string
+          n8n_webhook_id?: string | null
+          selected_platforms?: string[]
+          status?: string
+          updated_at?: string
+          use_ai_voice?: boolean
+          user_id: string
+          video_url?: string | null
+          voice_file_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idea_text?: string
+          n8n_webhook_id?: string | null
+          selected_platforms?: string[]
+          status?: string
+          updated_at?: string
+          use_ai_voice?: boolean
+          user_id?: string
+          video_url?: string | null
+          voice_file_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
