@@ -14,7 +14,10 @@ export const useSocialTokens = () => {
   const fetchConnectedAccounts = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('social_tokens')

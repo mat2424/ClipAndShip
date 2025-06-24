@@ -11,8 +11,8 @@ type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
 const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean }[] = [
   { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "youtube" },
-  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "music" },
-  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "instagram" },
+  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "music", locked: true },
+  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "instagram", locked: true },
   { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "facebook", locked: true },
   { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "x", locked: true },
   { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "linkedin", locked: true },
@@ -39,12 +39,10 @@ export const SocialAccountsManager = () => {
       await initiateOAuth(platform);
       
       toast({
-        title: "Success",
-        description: `Successfully connected to ${platforms.find(p => p.platform === platform)?.name}!`,
+        title: "Connecting...",
+        description: `Redirecting to ${platforms.find(p => p.platform === platform)?.name} for authorization...`,
       });
       
-      // Refresh the accounts list to show the new connection
-      refreshAccounts();
     } catch (error) {
       console.error(`Error connecting to ${platform}:`, error);
       toast({
@@ -52,10 +50,27 @@ export const SocialAccountsManager = () => {
         description: error instanceof Error ? error.message : `Failed to connect to ${platform}. Please try again.`,
         variant: "destructive",
       });
-    } finally {
       setIsConnecting(null);
     }
   };
+
+  // Listen for OAuth callback and refresh accounts
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('code') || urlParams.get('access_token')) {
+      // OAuth callback detected, refresh accounts and show success
+      setTimeout(() => {
+        refreshAccounts();
+        setIsConnecting(null);
+        toast({
+          title: "Success",
+          description: "Successfully connected your account!",
+        });
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 1000);
+    }
+  }, [refreshAccounts, toast]);
 
   const isConnected = (platform: SocialPlatform) => {
     return connectedAccounts.some(account => account.platform === platform);
