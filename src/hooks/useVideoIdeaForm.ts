@@ -121,24 +121,21 @@ export const useVideoIdeaForm = () => {
 
       if (error) throw error;
 
-      // Call the webhook directly
-      const response = await fetch("https://kazzz24.app.n8n.cloud/webhook-test/9a1ec0db-1b93-4c5e-928f-a003ece93ba9", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Call the webhook through our edge function
+      const { data: webhookData, error: webhookError } = await supabase.functions.invoke('call-n8n-webhook', {
+        body: {
           video_idea: ideaText,
           selected_platforms: selectedPlatforms,
           use_ai_voice: useAiVoice
-        }),
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (webhookError) {
+        console.error("Webhook error:", webhookError);
+        throw new Error(webhookError.message || "Failed to call webhook");
       }
 
-      const webhookData: WebhookResponse = await response.json();
+      console.log("Webhook response:", webhookData);
       setWebhookResponse(webhookData);
 
       // Update the video idea with the response data
