@@ -66,6 +66,39 @@ export type Database = {
         }
         Relationships: []
       }
+      social_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          platform?: Database["public"]["Enums"]["social_platform"]
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_ideas: {
         Row: {
           created_at: string
@@ -125,7 +158,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      social_platform:
+        | "youtube"
+        | "tiktok"
+        | "instagram"
+        | "facebook"
+        | "x"
+        | "linkedin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -240,6 +279,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      social_platform: [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "facebook",
+        "x",
+        "linkedin",
+      ],
+    },
   },
 } as const

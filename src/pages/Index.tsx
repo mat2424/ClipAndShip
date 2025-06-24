@@ -7,6 +7,8 @@ import { VideoIdeaForm } from "@/components/VideoIdeaForm";
 import { CreditBalance } from "@/components/CreditBalance";
 import { VideoIdeasList } from "@/components/VideoIdeasList";
 import { PricingSection } from "@/components/PricingSection";
+import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -49,6 +51,13 @@ const Index = () => {
           <h1 className="text-2xl font-bold text-gray-900">AI Video Publisher</h1>
           <div className="flex items-center space-x-4">
             <CreditBalance />
+            <Link
+              to="/connect-accounts"
+              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              <span>My Social Accounts</span>
+            </Link>
             <button
               onClick={() => supabase.auth.signOut()}
               className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
