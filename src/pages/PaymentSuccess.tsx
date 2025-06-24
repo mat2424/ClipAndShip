@@ -7,24 +7,63 @@ import { useToast } from "@/hooks/use-toast";
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const [processed, setProcessed] = useState(false);
   const { toast } = useToast();
   const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    if (sessionId) {
-      // The payment success is handled by the webhook, so we just show success message
-      toast({
-        title: "Payment Successful!",
-        description: "Your credits have been added to your account.",
-      });
-    }
-    setLoading(false);
+    const verifyPaymentAndAddCredits = async () => {
+      if (!sessionId) {
+        console.log("No session ID found");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        console.log("Verifying payment for session:", sessionId);
+        
+        // Call the handle-payment-success function to verify and add credits
+        const { data, error } = await supabase.functions.invoke('handle-payment-success', {
+          body: { session_id: sessionId }
+        });
+
+        if (error) {
+          console.error("Error verifying payment:", error);
+          toast({
+            title: "Payment Verification Error",
+            description: "There was an issue verifying your payment. Please contact support.",
+            variant: "destructive",
+          });
+        } else {
+          console.log("Payment verified successfully:", data);
+          setProcessed(true);
+          toast({
+            title: "Payment Successful!",
+            description: "Your credits have been added to your account.",
+          });
+        }
+      } catch (error) {
+        console.error("Payment verification failed:", error);
+        toast({
+          title: "Payment Verification Failed",
+          description: "Please contact support if your credits weren't added.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    verifyPaymentAndAddCredits();
   }, [sessionId, toast]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying your payment...</p>
+        </div>
       </div>
     );
   }
@@ -38,9 +77,14 @@ const PaymentSuccess = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {processed ? "Payment Successful!" : "Payment Completed"}
+          </h1>
           <p className="text-gray-600">
-            Thank you for your purchase. Your credits have been added to your account.
+            {processed 
+              ? "Thank you for your purchase. Your credits have been added to your account."
+              : "Your payment has been processed. Your credits should be available shortly."
+            }
           </p>
         </div>
         

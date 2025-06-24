@@ -9,7 +9,7 @@ export const CreditBalance = () => {
   useEffect(() => {
     fetchCredits();
 
-    // Subscribe to profile changes
+    // Subscribe to profile changes for real-time updates
     const channel = supabase
       .channel('profile-changes')
       .on(
@@ -19,24 +19,42 @@ export const CreditBalance = () => {
           schema: 'public',
           table: 'profiles'
         },
-        () => fetchCredits()
+        (payload) => {
+          console.log('Profile updated:', payload);
+          fetchCredits();
+        }
       )
       .subscribe();
 
+    // Also refresh credits every 30 seconds to ensure they're up to date
+    const interval = setInterval(fetchCredits, 30000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
   const fetchCredits = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setCredits(0);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('credits')
+        .eq('id', user.id)
         .single();
 
-      if (error) throw error;
-      setCredits(data?.credits || 0);
+      if (error) {
+        console.error('Error fetching credits:', error);
+      } else {
+        setCredits(data?.credits || 0);
+      }
     } catch (error) {
       console.error('Error fetching credits:', error);
     } finally {
