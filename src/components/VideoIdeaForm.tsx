@@ -1,6 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PlatformSelector } from "./PlatformSelector";
@@ -17,8 +16,6 @@ export const VideoIdeaForm = () => {
     setVoiceFile,
     selectedPlatforms,
     setSelectedPlatforms,
-    webhookUrl,
-    setWebhookUrl,
     userTier,
     loading,
     handleSubmit
@@ -45,20 +42,6 @@ export const VideoIdeaForm = () => {
           onUseAiVoiceChange={setUseAiVoice}
           onVoiceFileChange={setVoiceFile}
         />
-
-        <div>
-          <Label htmlFor="webhook-url">n8n Webhook URL (Optional)</Label>
-          <Input
-            id="webhook-url"
-            type="url"
-            value={webhookUrl}
-            onChange={(e) => setWebhookUrl(e.target.value)}
-            placeholder="https://your-n8n-instance.com/webhook/..."
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            If provided, this webhook will be triggered when video processing starts.
-          </p>
-        </div>
 
         <PlatformSelector
           selectedPlatforms={selectedPlatforms}

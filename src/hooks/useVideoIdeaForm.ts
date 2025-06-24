@@ -8,7 +8,6 @@ export const useVideoIdeaForm = () => {
   const [useAiVoice, setUseAiVoice] = useState(true);
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [webhookUrl, setWebhookUrl] = useState("");
   const [userTier, setUserTier] = useState<string>("free");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -106,8 +105,7 @@ export const useVideoIdeaForm = () => {
           use_ai_voice: useAiVoice,
           voice_file_url: voiceFileUrl,
           selected_platforms: selectedPlatforms,
-          status: 'pending',
-          n8n_webhook_id: webhookUrl || null
+          status: 'pending'
         })
         .select()
         .single();
@@ -132,29 +130,20 @@ export const useVideoIdeaForm = () => {
           description: 'Video generation'
         });
 
-      // Trigger n8n webhook if provided
-      if (webhookUrl && videoIdea) {
-        try {
-          await fetch(webhookUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            mode: "no-cors",
-            body: JSON.stringify({
-              video_idea_id: videoIdea.id,
-              idea_text: ideaText,
-              selected_platforms: selectedPlatforms,
-              use_ai_voice: useAiVoice,
-              voice_file_url: voiceFileUrl,
-              timestamp: new Date().toISOString(),
-            }),
-          });
-          console.log("n8n webhook triggered successfully");
-        } catch (webhookError) {
-          console.error("Error triggering n8n webhook:", webhookError);
-          // Don't fail the whole process if webhook fails
+      // Call video generation webhook
+      const { error: webhookError } = await supabase.functions.invoke('generate-video', {
+        body: {
+          video_idea_id: videoIdea.id,
+          video_idea: ideaText,
+          selected_platforms: selectedPlatforms,
+          use_ai_voice: useAiVoice,
+          voice_file_url: voiceFileUrl
         }
+      });
+
+      if (webhookError) {
+        console.error("Error calling video generation webhook:", webhookError);
+        // Don't fail the whole process if webhook fails
       }
 
       toast({
@@ -167,7 +156,6 @@ export const useVideoIdeaForm = () => {
       setSelectedPlatforms([]);
       setVoiceFile(null);
       setUseAiVoice(true);
-      setWebhookUrl("");
 
     } catch (error: any) {
       toast({
@@ -189,8 +177,6 @@ export const useVideoIdeaForm = () => {
     setVoiceFile,
     selectedPlatforms,
     setSelectedPlatforms,
-    webhookUrl,
-    setWebhookUrl,
     userTier,
     loading,
     handleSubmit
