@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,22 +16,46 @@ export const PricingSection = () => {
   const { toast } = useToast();
 
   const handlePurchase = async (credits: number, price: number) => {
+    console.log("Starting purchase process:", { credits, price });
     setLoading(credits);
     
     try {
+      // Check if user is authenticated first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to purchase credits",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log("User authenticated, calling create-payment function");
+      
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: { credits, price }
       });
 
-      if (error) throw error;
+      console.log("Function response:", { data, error });
+
+      if (error) {
+        console.error("Function error:", error);
+        throw error;
+      }
 
       if (data?.url) {
-        window.location.href = data.url;
+        console.log("Redirecting to checkout:", data.url);
+        // Open Stripe checkout in a new tab
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (error: any) {
+      console.error("Purchase error:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create payment session",
+        title: "Payment Error",
+        description: error.message || "Failed to create payment session. Please try again.",
         variant: "destructive",
       });
     } finally {

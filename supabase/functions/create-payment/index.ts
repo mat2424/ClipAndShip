@@ -15,6 +15,15 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting create-payment function");
+    
+    // Check if Stripe key is available
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      console.error("STRIPE_SECRET_KEY is not set");
+      throw new Error("Stripe configuration error");
+    }
+
     // Create Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -22,20 +31,31 @@ serve(async (req) => {
     );
 
     // Get authenticated user
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
     
+    const token = authHeader.replace("Bearer ", "");
+    const { data, error: authError } = await supabaseClient.auth.getUser(token);
+    if (authError) {
+      console.error("Auth error:", authError);
+      throw new Error("Authentication failed");
+    }
+    
+    const user = data.user;
     if (!user?.email) {
       throw new Error("User not authenticated or email not available");
     }
 
+    console.log("User authenticated:", user.id);
+
     // Get request body
     const { credits, price } = await req.json();
+    console.log("Payment request:", { credits, price });
 
     // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -48,6 +68,9 @@ serve(async (req) => {
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      console.log("Found existing customer:", customerId);
+    } else {
+      console.log("No existing customer found");
     }
 
     // Create checkout session
@@ -76,6 +99,8 @@ serve(async (req) => {
       },
     });
 
+    console.log("Checkout session created:", session.id);
+
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -83,7 +108,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error creating payment session:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message || "Failed to create payment session"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
