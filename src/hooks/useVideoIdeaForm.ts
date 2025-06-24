@@ -3,6 +3,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+interface WebhookResponse {
+  video_file: string;
+  youtube_link: string;
+  instagram_link: string;
+  tiktok_link: string;
+}
+
 export const useVideoIdeaForm = () => {
   const [ideaText, setIdeaText] = useState("");
   const [useAiVoice, setUseAiVoice] = useState(true);
@@ -10,6 +17,7 @@ export const useVideoIdeaForm = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [userTier, setUserTier] = useState<string>("free");
   const [loading, setLoading] = useState(false);
+  const [webhookResponse, setWebhookResponse] = useState<WebhookResponse | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,6 +77,7 @@ export const useVideoIdeaForm = () => {
     }
 
     setLoading(true);
+    setWebhookResponse(null);
 
     try {
       // Get current user
@@ -112,13 +121,50 @@ export const useVideoIdeaForm = () => {
 
       if (error) throw error;
 
-      // Deduct credit
+      // Call the webhook directly
+      const response = await fetch("https://kazzz24.app.n8n.cloud/webhook-test/9a1ec0db-1b93-4c5e-928f-a003ece93ba9", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          video_idea: ideaText,
+          selected_platforms: selectedPlatforms,
+          use_ai_voice: useAiVoice
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const webhookData: WebhookResponse = await response.json();
+      setWebhookResponse(webhookData);
+
+      // Update the video idea with the response data
       const { error: updateError } = await supabase
+        .from('video_ideas')
+        .update({
+          status: 'completed',
+          video_url: webhookData.video_file || null,
+          youtube_link: webhookData.youtube_link || null,
+          instagram_link: webhookData.instagram_link || null,
+          tiktok_link: webhookData.tiktok_link || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', videoIdea.id);
+
+      if (updateError) {
+        console.error("Error updating video idea:", updateError);
+      }
+
+      // Deduct credit
+      const { error: creditError } = await supabase
         .from('profiles')
         .update({ credits: profile.credits - 1 })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (creditError) throw creditError;
 
       // Record credit transaction
       await supabase
@@ -130,25 +176,9 @@ export const useVideoIdeaForm = () => {
           description: 'Video generation'
         });
 
-      // Call video generation webhook
-      const { error: webhookError } = await supabase.functions.invoke('generate-video', {
-        body: {
-          video_idea_id: videoIdea.id,
-          video_idea: ideaText,
-          selected_platforms: selectedPlatforms,
-          use_ai_voice: useAiVoice,
-          voice_file_url: voiceFileUrl
-        }
-      });
-
-      if (webhookError) {
-        console.error("Error calling video generation webhook:", webhookError);
-        // Don't fail the whole process if webhook fails
-      }
-
       toast({
         title: "Success!",
-        description: "Your video idea has been submitted for processing.",
+        description: "Your video has been generated successfully!",
       });
 
       // Reset form
@@ -158,9 +188,10 @@ export const useVideoIdeaForm = () => {
       setUseAiVoice(true);
 
     } catch (error: any) {
+      console.error("Error generating video:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to generate video. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -179,6 +210,7 @@ export const useVideoIdeaForm = () => {
     setSelectedPlatforms,
     userTier,
     loading,
+    webhookResponse,
     handleSubmit
   };
 };
