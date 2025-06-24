@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { SocialPlatformButton } from "./SocialPlatformButton";
 import { ConnectedAccountCard } from "./ConnectedAccountCard";
 import { useSocialTokens } from "@/hooks/useSocialTokens";
+import { initiateOAuth } from "@/utils/oauthUtils";
+import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
@@ -19,21 +21,40 @@ const platforms: { platform: SocialPlatform; name: string; color: string; icon: 
 export const SocialAccountsManager = () => {
   const { connectedAccounts, loading, refreshAccounts, disconnectAccount } = useSocialTokens();
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleConnect = async (platform: SocialPlatform) => {
     if (platforms.find(p => p.platform === platform)?.locked) {
-      alert("This platform is coming soon! Stay tuned for updates.");
+      toast({
+        title: "Coming Soon",
+        description: "This platform integration is coming soon! Stay tuned for updates.",
+        variant: "default",
+      });
       return;
     }
 
     setIsConnecting(platform);
     
-    // This will be replaced with actual OAuth URLs later
-    // For now, we'll simulate the connection process
-    setTimeout(() => {
-      alert(`OAuth flow for ${platform} would start here. You'll add the actual OAuth URLs later.`);
+    try {
+      await initiateOAuth(platform);
+      
+      toast({
+        title: "Success",
+        description: `Successfully connected to ${platforms.find(p => p.platform === platform)?.name}!`,
+      });
+      
+      // Refresh the accounts list to show the new connection
+      refreshAccounts();
+    } catch (error) {
+      console.error(`Error connecting to ${platform}:`, error);
+      toast({
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : `Failed to connect to ${platform}. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
       setIsConnecting(null);
-    }, 1000);
+    }
   };
 
   const isConnected = (platform: SocialPlatform) => {
