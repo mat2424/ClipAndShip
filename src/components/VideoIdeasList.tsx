@@ -44,7 +44,7 @@ export const VideoIdeasList = () => {
     try {
       const { data, error } = await supabase
         .from('video_ideas')
-        .select('*')
+        .select('id, idea_text, selected_platforms, status, video_url, youtube_link, instagram_link, tiktok_link, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
