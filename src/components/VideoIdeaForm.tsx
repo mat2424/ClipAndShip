@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,15 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Lock } from "lucide-react";
 
 const PLATFORMS = [
-  "YouTube",
-  "TikTok", 
-  "Instagram",
-  "Facebook",
-  "Twitter",
-  "LinkedIn"
+  { name: "YouTube", tier: "free" },
+  { name: "TikTok", tier: "free" },
+  { name: "Instagram", tier: "free" },
+  { name: "Facebook", tier: "premium" },
+  { name: "X", tier: "premium" },
+  { name: "LinkedIn", tier: "premium" }
 ];
 
 export const VideoIdeaForm = () => {
@@ -22,10 +23,53 @@ export const VideoIdeaForm = () => {
   const [useAiVoice, setUseAiVoice] = useState(true);
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [userTier, setUserTier] = useState<string>("free");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchUserTier();
+  }, []);
+
+  const fetchUserTier = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user tier:', error);
+      } else {
+        setUserTier(data?.subscription_tier || 'free');
+      }
+    } catch (error) {
+      console.error('Error fetching user tier:', error);
+    }
+  };
+
+  const canSelectPlatform = (platform: { name: string; tier: string }) => {
+    if (platform.tier === "free") return true;
+    return userTier === "premium" || userTier === "pro";
+  };
+
   const handlePlatformChange = (platform: string, checked: boolean) => {
+    const platformData = PLATFORMS.find(p => p.name === platform);
+    
+    if (checked && platformData && !canSelectPlatform(platformData)) {
+      toast({
+        title: "Premium Feature",
+        description: `${platform} is available for premium users only. Upgrade your account to access this platform.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (checked) {
       setSelectedPlatforms([...selectedPlatforms, platform]);
     } else {
@@ -93,7 +137,7 @@ export const VideoIdeaForm = () => {
       }
 
       // Create video idea record
-      const { error } = await supabase
+      const { data: videoIdea, error } = await supabase
         .from('video_ideas')
         .insert({
           user_id: user.id,
@@ -101,8 +145,11 @@ export const VideoIdeaForm = () => {
           use_ai_voice: useAiVoice,
           voice_file_url: voiceFileUrl,
           selected_platforms: selectedPlatforms,
-          status: 'pending'
-        });
+          status: 'pending',
+          n8n_webhook_id: webhookUrl || null
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -124,6 +171,31 @@ export const VideoIdeaForm = () => {
           description: 'Video generation'
         });
 
+      // Trigger n8n webhook if provided
+      if (webhookUrl && videoIdea) {
+        try {
+          await fetch(webhookUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            mode: "no-cors",
+            body: JSON.stringify({
+              video_idea_id: videoIdea.id,
+              idea_text: ideaText,
+              selected_platforms: selectedPlatforms,
+              use_ai_voice: useAiVoice,
+              voice_file_url: voiceFileUrl,
+              timestamp: new Date().toISOString(),
+            }),
+          });
+          console.log("n8n webhook triggered successfully");
+        } catch (webhookError) {
+          console.error("Error triggering n8n webhook:", webhookError);
+          // Don't fail the whole process if webhook fails
+        }
+      }
+
       toast({
         title: "Success!",
         description: "Your video idea has been submitted for processing.",
@@ -134,6 +206,7 @@ export const VideoIdeaForm = () => {
       setSelectedPlatforms([]);
       setVoiceFile(null);
       setUseAiVoice(true);
+      setWebhookUrl("");
 
     } catch (error: any) {
       toast({
@@ -184,19 +257,53 @@ export const VideoIdeaForm = () => {
         )}
 
         <div>
+          <Label htmlFor="webhook-url">n8n Webhook URL (Optional)</Label>
+          <Input
+            id="webhook-url"
+            type="url"
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            placeholder="https://your-n8n-instance.com/webhook/..."
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            If provided, this webhook will be triggered when video processing starts.
+          </p>
+        </div>
+
+        <div>
           <Label>Select Platforms *</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            {PLATFORMS.map((platform) => (
-              <div key={platform} className="flex items-center space-x-2">
-                <Checkbox
-                  id={platform}
-                  checked={selectedPlatforms.includes(platform)}
-                  onCheckedChange={(checked) => handlePlatformChange(platform, checked as boolean)}
-                />
-                <Label htmlFor={platform}>{platform}</Label>
-              </div>
-            ))}
+            {PLATFORMS.map((platform) => {
+              const isLocked = !canSelectPlatform(platform);
+              return (
+                <div key={platform.name} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={platform.name}
+                    checked={selectedPlatforms.includes(platform.name)}
+                    onCheckedChange={(checked) => handlePlatformChange(platform.name, checked as boolean)}
+                    disabled={isLocked}
+                  />
+                  <Label 
+                    htmlFor={platform.name} 
+                    className={`flex items-center space-x-1 ${isLocked ? 'text-gray-400' : ''}`}
+                  >
+                    <span>{platform.name}</span>
+                    {isLocked && <Lock className="h-3 w-3" />}
+                  </Label>
+                  {isLocked && (
+                    <span className="text-xs text-orange-600 font-medium">Premium</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          {userTier === 'free' && (
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>Upgrade to Premium</strong> to unlock Facebook, X, and LinkedIn platforms for wider reach!
+              </p>
+            </div>
+          )}
         </div>
 
         <Button type="submit" disabled={loading} className="w-full">
