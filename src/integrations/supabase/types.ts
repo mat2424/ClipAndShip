@@ -71,40 +71,49 @@ export type Database = {
           created_at: string
           id: string
           idea_text: string
+          instagram_link: string | null
           n8n_webhook_id: string | null
           selected_platforms: string[]
           status: string
+          tiktok_link: string | null
           updated_at: string
           use_ai_voice: boolean
           user_id: string
           video_url: string | null
           voice_file_url: string | null
+          youtube_link: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           idea_text: string
+          instagram_link?: string | null
           n8n_webhook_id?: string | null
           selected_platforms?: string[]
           status?: string
+          tiktok_link?: string | null
           updated_at?: string
           use_ai_voice?: boolean
           user_id: string
           video_url?: string | null
           voice_file_url?: string | null
+          youtube_link?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           idea_text?: string
+          instagram_link?: string | null
           n8n_webhook_id?: string | null
           selected_platforms?: string[]
           status?: string
+          tiktok_link?: string | null
           updated_at?: string
           use_ai_voice?: boolean
           user_id?: string
           video_url?: string | null
           voice_file_url?: string | null
+          youtube_link?: string | null
         }
         Relationships: []
       }
