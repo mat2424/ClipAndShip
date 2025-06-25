@@ -26,6 +26,8 @@ export const SocialPlatformButton = ({
   isLocked,
   onConnect,
 }: SocialPlatformButtonProps) => {
+  const isImageIcon = icon.startsWith('/lovable-uploads/') || icon.startsWith('http');
+
   return (
     <div className="relative">
       <Button
@@ -36,6 +38,9 @@ export const SocialPlatformButton = ({
         <div className="flex items-center justify-center space-x-3">
           {isConnecting && <Loader2 className="w-5 h-5 animate-spin" />}
           {isLocked && !isConnecting && <Lock className="w-5 h-5" />}
+          {!isConnecting && !isLocked && isImageIcon && (
+            <img src={icon} alt={name} className="w-6 h-6 object-contain" />
+          )}
           <span>
             {isConnected 
               ? `✓ ${name} Connected` 

@@ -6,13 +6,15 @@ import { useSocialTokens } from "@/hooks/useSocialTokens";
 import { initiateOAuth } from "@/utils/oauthUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
 const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean }[] = [
-  { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "youtube" },
-  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "music", locked: true },
-  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "instagram", locked: true },
+  { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "/lovable-uploads/9a23e1ea-ff26-47f3-b0a7-7ce8ee7d820d.png" },
+  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/8a941047-18ee-4da9-be93-b24775c1f05f.png" },
+  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/d15012aa-b3e3-422f-bf02-f72b7132091c.png" },
   { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "facebook", locked: true },
   { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "x", locked: true },
   { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "linkedin", locked: true },
@@ -78,6 +80,17 @@ export const SocialAccountsManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Back to Main Page Button */}
+      <div className="mb-6">
+        <Link
+          to="/"
+          className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Main Page</span>
+        </Link>
+      </div>
+
       {/* Available Platforms */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {platforms.map((platformConfig) => (
