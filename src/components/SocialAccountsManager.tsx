@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { SocialPlatformButton } from "./SocialPlatformButton";
 import { ConnectedAccountCard } from "./ConnectedAccountCard";
 import { useSocialTokens } from "@/hooks/useSocialTokens";
@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
@@ -25,99 +24,6 @@ export const SocialAccountsManager = () => {
   const { connectedAccounts, loading, refreshAccounts, disconnectAccount } = useSocialTokens();
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
   const { toast } = useToast();
-  const [processingOAuth, setProcessingOAuth] = useState(false);
-
-  // Handle OAuth callback tokens if present in URL
-  useEffect(() => {
-    const processOAuthTokens = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      // Check for OAuth errors first
-      const error = urlParams.get('error') || hashParams.get('error');
-      const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
-      
-      if (error) {
-        console.error('OAuth error detected:', error, errorDescription);
-        toast({
-          title: "Connection Failed",
-          description: errorDescription ? decodeURIComponent(errorDescription.replace(/\+/g, ' ')) : "Failed to connect account. Please try again.",
-          variant: "destructive",
-        });
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        setIsConnecting(null);
-        return;
-      }
-
-      // Check for Supabase OAuth tokens
-      const accessToken = hashParams.get('access_token');
-      const providerToken = hashParams.get('provider_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const expiresAt = hashParams.get('expires_at');
-      
-      if (accessToken && providerToken) {
-        console.log('Processing OAuth tokens for YouTube connection...');
-        setProcessingOAuth(true);
-        
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          if (user) {
-            console.log('Storing YouTube connection for user:', user.id);
-            
-            const { data, error: dbError } = await supabase
-              .from('social_tokens')
-              .upsert(
-                {
-                  user_id: user.id,
-                  platform: 'youtube' as SocialPlatform,
-                  access_token: providerToken, // Use provider token for YouTube API calls
-                  refresh_token: refreshToken,
-                  expires_at: expiresAt ? new Date(parseInt(expiresAt) * 1000).toISOString() : null,
-                },
-                {
-                  onConflict: 'user_id,platform'
-                }
-              )
-              .select()
-              .single();
-
-            if (dbError) {
-              console.error('Error storing social token:', dbError);
-              throw new Error('Failed to save connection');
-            }
-
-            console.log('YouTube connection saved successfully:', data);
-            
-            toast({
-              title: "Success!",
-              description: "Successfully connected your YouTube account.",
-            });
-            
-            // Refresh the connected accounts list
-            refreshAccounts();
-          } else {
-            throw new Error('No authenticated user found');
-          }
-        } catch (error) {
-          console.error('Error processing OAuth tokens:', error);
-          toast({
-            title: "Connection Failed",
-            description: error instanceof Error ? error.message : "Failed to save connection. Please try again.",
-            variant: "destructive",
-          });
-        } finally {
-          setProcessingOAuth(false);
-          setIsConnecting(null);
-          // Clean up URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    };
-
-    processOAuthTokens();
-  }, [toast, refreshAccounts]);
 
   const handleConnect = async (platform: SocialPlatform) => {
     const platformConfig = platforms.find(p => p.platform === platform);
@@ -155,17 +61,6 @@ export const SocialAccountsManager = () => {
   const isConnected = (platform: SocialPlatform) => {
     return connectedAccounts.some(account => account.platform === platform);
   };
-
-  if (processingOAuth) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Processing your connection...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -218,7 +113,7 @@ export const SocialAccountsManager = () => {
       )}
 
       {/* Empty State */}
-      {connectedAccounts.length === 0 && !loading && !processingOAuth && (
+      {connectedAccounts.length === 0 && !loading && (
         <div className="text-center py-8">
           <p className="text-gray-500">No accounts connected yet. Start by connecting your first social media account above.</p>
         </div>

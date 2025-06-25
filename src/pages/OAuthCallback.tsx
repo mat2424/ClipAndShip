@@ -49,26 +49,27 @@ const OAuthCallback = () => {
         const accessToken = hashParams.get('access_token');
         const providerToken = hashParams.get('provider_token');
         const refreshToken = hashParams.get('refresh_token');
+        const expiresAt = hashParams.get('expires_at');
         
         if (accessToken && providerToken) {
-          console.log('Processing Supabase OAuth callback with tokens');
+          console.log('Processing OAuth tokens for YouTube connection...');
           
-          // Get the current user to identify which platform this is for
+          // Get the current user to store the connection
           const { data: { user } } = await supabase.auth.getUser();
           
           if (user) {
-            // Store the connection in our database
-            // We'll assume this is YouTube since that's what we're connecting
-            const { data, error } = await supabase
+            console.log('Storing YouTube connection for user:', user.id);
+            
+            // Store the YouTube connection in our database
+            const { data, error: dbError } = await supabase
               .from('social_tokens')
               .upsert(
                 {
                   user_id: user.id,
                   platform: 'youtube',
-                  access_token: providerToken, // Use the provider token for API calls
+                  access_token: providerToken, // Use provider token for YouTube API calls
                   refresh_token: refreshToken,
-                  expires_at: hashParams.get('expires_at') ? 
-                    new Date(parseInt(hashParams.get('expires_at')!) * 1000).toISOString() : null,
+                  expires_at: expiresAt ? new Date(parseInt(expiresAt) * 1000).toISOString() : null,
                 },
                 {
                   onConflict: 'user_id,platform'
@@ -77,15 +78,19 @@ const OAuthCallback = () => {
               .select()
               .single();
 
-            if (error) {
-              console.error('Error storing social token:', error);
+            if (dbError) {
+              console.error('Error storing social token:', dbError);
               throw new Error('Failed to save connection');
             }
 
+            console.log('YouTube connection saved successfully:', data);
+            
             toast({
               title: "Success!",
               description: "Successfully connected your YouTube account.",
             });
+          } else {
+            throw new Error('No authenticated user found');
           }
           
           navigate("/connect-accounts");
@@ -148,7 +153,7 @@ const OAuthCallback = () => {
             Processing Connection
           </h2>
           <p className="text-gray-600 mb-6">
-            Please wait while we process your connection...
+            Please wait while we process your YouTube connection...
           </p>
           
           <Link

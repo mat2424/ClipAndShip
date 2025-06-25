@@ -56,8 +56,8 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     const provider = platformProviderMap[platform];
     const scopes = platformScopes[platform];
 
-    // Use the current page as redirect URL since Supabase seems to redirect there anyway
-    const redirectTo = `${window.location.origin}/connect-accounts`;
+    // Redirect to oauth-callback page for processing
+    const redirectTo = `${window.location.origin}/oauth-callback`;
 
     console.log('Initiating OAuth with redirect:', redirectTo);
 
