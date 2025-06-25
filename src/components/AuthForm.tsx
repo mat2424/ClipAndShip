@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 export const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -87,6 +88,18 @@ export const AuthForm = () => {
               />
             </div>
           </div>
+
+          {isSignUp && (
+            <div className="text-sm text-gray-600">
+              By signing up, you agree to our{" "}
+              <Link 
+                to="/privacy-policy" 
+                className="text-blue-600 hover:text-blue-500 underline"
+              >
+                Privacy Policy
+              </Link>
+            </div>
+          )}
 
           <div>
             <Button
