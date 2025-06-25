@@ -20,19 +20,36 @@ const OAuthCallback = () => {
         // Check for OAuth errors first
         const error = urlParams.get('error') || hashParams.get('error');
         const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+        const errorCode = urlParams.get('error_code') || hashParams.get('error_code');
         
         if (error) {
-          console.error('OAuth error detected:', error, errorDescription);
+          console.error('OAuth error detected:', error, errorDescription, errorCode);
+          
+          // Handle specific error types
+          let userMessage = "Failed to connect account. Please try again.";
+          
+          if (error === 'server_error' && errorCode === 'unexpected_failure') {
+            userMessage = "There was an issue with the authentication server. Please try connecting again.";
+          } else if (errorDescription) {
+            userMessage = decodeURIComponent(errorDescription.replace(/\+/g, ' '));
+          }
+          
           toast({
             title: "Connection Failed",
-            description: errorDescription 
-              ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
-              : "Failed to connect account. Please try again.",
+            description: userMessage,
             variant: "destructive",
           });
           
-          // Redirect to connect accounts page
+          // Redirect to connect accounts page after showing error
           setTimeout(() => navigate("/connect-accounts"), 2000);
+          return;
+        }
+        
+        // Check if we have a valid OAuth code
+        const code = urlParams.get('code');
+        if (!code) {
+          console.log('No OAuth code found, redirecting to connect accounts');
+          navigate("/connect-accounts");
           return;
         }
         
@@ -48,29 +65,33 @@ const OAuthCallback = () => {
         navigate("/connect-accounts");
       } catch (error) {
         console.error("OAuth callback error:", error);
+        
+        // Handle different types of errors
+        let errorMessage = "Failed to connect account. Please try again.";
+        
+        if (error instanceof Error) {
+          if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
+            errorMessage = "Authentication service temporarily unavailable. Please try again in a moment.";
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
         toast({
           title: "Connection Failed",
-          description: error instanceof Error ? error.message : "Failed to connect account. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
         
-        // Redirect to connect accounts page even on error
+        // Always redirect to connect accounts page on error
         setTimeout(() => navigate("/connect-accounts"), 2000);
       } finally {
         setProcessing(false);
       }
     };
 
-    // Only process if we have the necessary URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    if (urlParams.get('code') || urlParams.get('error') || hashParams.get('error')) {
-      processCallback();
-    } else {
-      // No OAuth parameters, redirect to connect accounts page
-      navigate("/connect-accounts");
-    }
+    // Always process the callback, even if no parameters are present
+    processCallback();
   }, [navigate, toast]);
 
   if (processing) {
