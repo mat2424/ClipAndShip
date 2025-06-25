@@ -56,11 +56,14 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     const provider = platformProviderMap[platform];
     const scopes = platformScopes[platform];
 
+    // Get the current origin to construct proper redirect URL
+    const redirectTo = `${window.location.origin}/connect-accounts`;
+
     // Use Supabase's built-in OAuth with platform-specific scopes
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectTo,
         scopes: scopes,
         queryParams: {
           platform: platform // Pass platform info for later identification
@@ -71,9 +74,6 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     if (error) {
       throw error;
     }
-
-    // Store platform connection after successful OAuth
-    await storePlatformConnection(platform, user.id);
 
     return data;
   } catch (error) {
