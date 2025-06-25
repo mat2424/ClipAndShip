@@ -11,14 +11,23 @@ const OAuthCallback = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [processing, setProcessing] = useState(true);
+  const [hasProcessed, setHasProcessed] = useState(false);
 
   useEffect(() => {
     const processCallback = async () => {
+      // Prevent processing multiple times
+      if (hasProcessed) {
+        console.log('⚠️ OAuth callback already processed, skipping');
+        return;
+      }
+
       try {
         console.log('🔄 OAuth callback started');
         console.log('📍 Current URL:', window.location.href);
         console.log('🔗 Hash params:', window.location.hash);
         console.log('🔗 Search params:', window.location.search);
+        
+        setHasProcessed(true);
         
         // Handle Supabase OAuth callback (access_token in hash)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
@@ -179,8 +188,13 @@ const OAuthCallback = () => {
       }
     };
 
-    processCallback();
-  }, [navigate, toast]);
+    // Small delay to ensure component is mounted
+    const timer = setTimeout(() => {
+      processCallback();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [navigate, toast, hasProcessed]);
 
   if (processing) {
     return (
