@@ -58,9 +58,32 @@ export const SocialAccountsManager = () => {
     }
   };
 
-  // Listen for OAuth callback and refresh accounts
+  // Listen for OAuth callback and errors, refresh accounts
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    
+    // Check for OAuth errors in URL params or hash
+    const error = urlParams.get('error') || hashParams.get('error');
+    const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+    
+    if (error) {
+      console.error('OAuth error:', error, errorDescription);
+      toast({
+        title: "Connection Failed",
+        description: errorDescription 
+          ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+          : "Failed to connect your account. Please try again.",
+        variant: "destructive",
+      });
+      setIsConnecting(null);
+      
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+    
+    // Check for successful OAuth callback
     if (urlParams.get('code') || urlParams.get('access_token')) {
       // OAuth callback detected, refresh accounts and show success
       setTimeout(() => {
