@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
@@ -21,17 +22,16 @@ const platformScopes: Record<string, string> = {
   instagram: "user_profile,user_media"
 };
 
-// Custom OAuth URLs for platforms not supported by Supabase
-const customOAuthUrls = {
+// TikTok and Instagram client configuration
+// You need to set these in your TikTok and Instagram developer portals
+const CLIENT_CONFIG = {
   tiktok: {
-    authUrl: "https://www.tiktok.com/auth/authorize/",
-    tokenUrl: "https://auth.tiktok-tokens.com/api/v2/token/",
-    userInfoUrl: "https://open-api.tiktok.com/platform/oauth/connect/"
+    clientId: "YOUR_TIKTOK_CLIENT_KEY", // Replace with your actual TikTok client key
+    authUrl: "https://www.tiktok.com/v2/auth/authorize/"
   },
   instagram: {
-    authUrl: "https://api.instagram.com/oauth/authorize",
-    tokenUrl: "https://api.instagram.com/oauth/access_token",
-    userInfoUrl: "https://graph.instagram.com/me"
+    clientId: "YOUR_INSTAGRAM_CLIENT_ID", // Replace with your actual Instagram client ID
+    authUrl: "https://api.instagram.com/oauth/authorize"
   }
 };
 
@@ -100,6 +100,8 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
 // Custom OAuth flow for TikTok and Instagram
 const initiateCustomOAuth = async (platform: 'tiktok' | 'instagram') => {
   try {
+    console.log(`🔧 Setting up custom OAuth for ${platform}`);
+    
     // Generate a random state parameter for security
     const state = generateRandomState();
     
@@ -111,33 +113,44 @@ const initiateCustomOAuth = async (platform: 'tiktok' | 'instagram') => {
     let authUrl = '';
     
     if (platform === 'tiktok') {
-      // TikTok OAuth URL
-      // Note: You need to register your app at https://developers.tiktok.com/
-      const clientId = 'YOUR_TIKTOK_CLIENT_ID'; // This should be set in environment variables
-      authUrl = `${customOAuthUrls.tiktok.authUrl}?` +
-        `client_key=${clientId}&` +
+      // Check if client ID is configured
+      if (CLIENT_CONFIG.tiktok.clientId === 'YOUR_TIKTOK_CLIENT_KEY') {
+        throw new Error('TikTok client ID not configured. Please update the CLIENT_CONFIG in oauthUtils.ts with your actual TikTok client key from the developer portal.');
+      }
+      
+      authUrl = `${CLIENT_CONFIG.tiktok.authUrl}?` +
+        `client_key=${CLIENT_CONFIG.tiktok.clientId}&` +
         `scope=${platformScopes.tiktok}&` +
         `response_type=code&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `state=${state}`;
+        
+      console.log(`🎯 TikTok OAuth URL:`, authUrl);
+      
     } else if (platform === 'instagram') {
-      // Instagram Basic Display API OAuth URL
-      // Note: You need to register your app at https://developers.facebook.com/
-      const clientId = 'YOUR_INSTAGRAM_CLIENT_ID'; // This should be set in environment variables
-      authUrl = `${customOAuthUrls.instagram.authUrl}?` +
-        `client_id=${clientId}&` +
+      // Check if client ID is configured
+      if (CLIENT_CONFIG.instagram.clientId === 'YOUR_INSTAGRAM_CLIENT_ID') {
+        throw new Error('Instagram client ID not configured. Please update the CLIENT_CONFIG in oauthUtils.ts with your actual Instagram client ID from the Facebook Developer portal.');
+      }
+      
+      authUrl = `${CLIENT_CONFIG.instagram.authUrl}?` +
+        `client_id=${CLIENT_CONFIG.instagram.clientId}&` +
         `redirect_uri=${encodeURIComponent(redirectUri)}&` +
         `scope=${platformScopes.instagram}&` +
         `response_type=code&` +
         `state=${state}`;
+        
+      console.log(`📸 Instagram OAuth URL:`, authUrl);
     }
+    
+    console.log(`🚀 Redirecting to ${platform} OAuth...`);
     
     // Redirect to the OAuth provider
     window.location.href = authUrl;
     
     return { data: null, error: null };
   } catch (error) {
-    console.error(`Error initiating custom OAuth for ${platform}:`, error);
+    console.error(`💥 Error initiating custom OAuth for ${platform}:`, error);
     throw error;
   }
 };
@@ -145,10 +158,18 @@ const initiateCustomOAuth = async (platform: 'tiktok' | 'instagram') => {
 // Handle OAuth callback for custom flows
 export const handleCustomOAuthCallback = async () => {
   try {
+    console.log('🔄 Processing custom OAuth callback...');
+    
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const state = urlParams.get('state');
     const error = urlParams.get('error');
+    
+    console.log('📋 Callback parameters:', { 
+      hasCode: !!code, 
+      hasState: !!state, 
+      error: error 
+    });
     
     if (error) {
       throw new Error(`OAuth error: ${error}`);
@@ -176,96 +197,33 @@ export const handleCustomOAuthCallback = async () => {
       throw new Error('Invalid state parameter');
     }
     
-    // Exchange code for access token
-    const tokenData = await exchangeCodeForToken(platform, code);
+    console.log(`✅ Identified platform: ${platform}`);
     
-    // Get user info from the platform
-    const userInfo = await getPlatformUserInfo(platform, tokenData.access_token);
-    
-    // Store the connection in our database
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await storePlatformConnection(platform, user.id, tokenData);
-    }
-    
-    return { platform, userInfo, tokenData };
-  } catch (error) {
-    console.error('Error handling OAuth callback:', error);
-    throw error;
-  }
-};
-
-// Exchange authorization code for access token
-const exchangeCodeForToken = async (platform: 'tiktok' | 'instagram', code: string) => {
-  // This should be done server-side for security
-  // For now, we'll simulate the token exchange
-  // In production, you'd call your backend API endpoint
-  
-  const redirectUri = `${window.location.origin}/oauth-callback`;
-  
-  try {
-    // Call your backend endpoint to exchange the code
-    const response = await fetch('/api/oauth/exchange-token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        platform,
-        code,
-        redirectUri
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to exchange code for token');
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error exchanging code for token:', error);
-    // For demo purposes, return mock data
-    return {
+    // For now, we'll create a mock token since server-side exchange isn't implemented yet
+    const mockTokenData = {
       access_token: `mock_${platform}_token_${Date.now()}`,
       token_type: 'bearer',
       expires_in: 3600
     };
-  }
-};
-
-// Get user info from platform API
-const getPlatformUserInfo = async (platform: 'tiktok' | 'instagram', accessToken: string) => {
-  try {
-    // Call your backend endpoint to get user info
-    const response = await fetch('/api/oauth/user-info', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        platform,
-        accessToken
-      })
-    });
     
-    if (!response.ok) {
-      throw new Error('Failed to get user info');
+    // Store the connection in our database
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      console.log(`💾 Storing ${platform} connection for user:`, user.id);
+      await storePlatformConnection(platform, user.id, mockTokenData);
     }
     
-    return await response.json();
+    return { platform, tokenData: mockTokenData };
   } catch (error) {
-    console.error('Error getting user info:', error);
-    // For demo purposes, return mock data
-    return {
-      id: `mock_${platform}_user_${Date.now()}`,
-      username: `mock_${platform}_user`,
-      display_name: `Mock ${platform.charAt(0).toUpperCase() + platform.slice(1)} User`
-    };
+    console.error('💥 Error handling OAuth callback:', error);
+    throw error;
   }
 };
 
 const storePlatformConnection = async (platform: SocialPlatform, userId: string, tokenData?: any) => {
   try {
+    console.log(`💾 Storing connection for ${platform}...`);
+    
     // Store a record of the platform connection
     const { data, error } = await supabase
       .from('social_tokens')
@@ -286,12 +244,14 @@ const storePlatformConnection = async (platform: SocialPlatform, userId: string,
       .single();
 
     if (error) {
+      console.error('❌ Database error:', error);
       throw error;
     }
 
+    console.log(`✅ Successfully stored ${platform} connection:`, data);
     return data;
   } catch (error) {
-    console.error('Error storing platform connection:', error);
+    console.error('💥 Error storing platform connection:', error);
     throw error;
   }
 };
