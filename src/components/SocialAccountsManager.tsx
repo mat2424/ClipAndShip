@@ -13,8 +13,8 @@ type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
 const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean }[] = [
   { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "/lovable-uploads/9a23e1ea-ff26-47f3-b0a7-7ce8ee7d820d.png" },
-  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/8a941047-18ee-4da9-be93-b24775c1f05f.png" },
-  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/d15012aa-b3e3-422f-bf02-f72b7132091c.png" },
+  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/8a941047-18ee-4da9-be93-b24775c1f05f.png", locked: true },
+  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/d15012aa-b3e3-422f-bf02-f72b7132091c.png", locked: true },
   { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "facebook", locked: true },
   { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "x", locked: true },
   { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "linkedin", locked: true },
@@ -26,10 +26,12 @@ export const SocialAccountsManager = () => {
   const { toast } = useToast();
 
   const handleConnect = async (platform: SocialPlatform) => {
-    if (platforms.find(p => p.platform === platform)?.locked) {
+    const platformConfig = platforms.find(p => p.platform === platform);
+    
+    if (platformConfig?.locked) {
       toast({
         title: "Coming Soon",
-        description: "This platform integration is coming soon! Stay tuned for updates.",
+        description: `${platformConfig.name} integration is coming soon! Stay tuned for updates.`,
         variant: "default",
       });
       return;
@@ -42,7 +44,7 @@ export const SocialAccountsManager = () => {
       
       toast({
         title: "Connecting...",
-        description: `Redirecting to ${platforms.find(p => p.platform === platform)?.name} for authorization...`,
+        description: `Redirecting to ${platformConfig?.name} for authorization...`,
       });
       
     } catch (error) {

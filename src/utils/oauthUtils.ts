@@ -4,21 +4,17 @@ import { Database } from "@/integrations/supabase/types";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
-// Platform to Supabase OAuth provider mapping
-const platformProviderMap: Record<SocialPlatform, string> = {
+// Platform to Supabase OAuth provider mapping (only supported platforms)
+const platformProviderMap: Record<string, string> = {
   youtube: "google", // YouTube uses Google OAuth
-  tiktok: "tiktok",
-  instagram: "facebook", // Instagram uses Facebook OAuth
   facebook: "facebook",
   x: "twitter",
   linkedin: "linkedin_oidc"
 };
 
 // Platform-specific OAuth scopes
-const platformScopes: Record<SocialPlatform, string> = {
+const platformScopes: Record<string, string> = {
   youtube: "https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube",
-  tiktok: "user.info.basic,video.upload",
-  instagram: "user_profile,user_media",
   facebook: "pages_manage_posts,pages_read_engagement",
   x: "tweet.read tweet.write users.read",
   linkedin: "r_liteprofile w_member_social"
@@ -26,6 +22,11 @@ const platformScopes: Record<SocialPlatform, string> = {
 
 export const initiateOAuth = async (platform: SocialPlatform) => {
   try {
+    // Check if platform is supported
+    if (!platformProviderMap[platform]) {
+      throw new Error(`${platform} OAuth is not currently supported`);
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       throw new Error("User not authenticated");
