@@ -65,7 +65,8 @@ const OAuthCallback = () => {
           hasProviderToken: !!providerToken,
           hasRefreshToken: !!refreshToken,
           expiresAt,
-          expiresIn
+          expiresIn,
+          providerTokenPreview: providerToken ? providerToken.substring(0, 20) + '...' : null
         });
         
         if (accessToken && providerToken) {
@@ -91,6 +92,7 @@ const OAuthCallback = () => {
             }
             
             console.log('💾 Saving token with expiration:', expirationDate);
+            console.log('🔑 Provider token length:', providerToken.length);
             
             // Store the YouTube connection in our database
             const { data, error: dbError } = await supabase
@@ -112,7 +114,7 @@ const OAuthCallback = () => {
 
             if (dbError) {
               console.error('❌ Error storing social token:', dbError);
-              throw new Error('Failed to save connection');
+              throw new Error('Failed to save connection: ' + dbError.message);
             }
 
             console.log('✅ YouTube connection saved successfully:', data);
@@ -126,7 +128,10 @@ const OAuthCallback = () => {
             throw new Error('No authenticated user found');
           }
           
-          navigate("/connect-accounts");
+          // Clear the URL hash to prevent reprocessing
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          setTimeout(() => navigate("/connect-accounts"), 1000);
           return;
         }
         
