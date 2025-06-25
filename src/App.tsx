@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import ConnectAccounts from "./pages/ConnectAccounts";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/connect-accounts" element={<ConnectAccounts />} />
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
