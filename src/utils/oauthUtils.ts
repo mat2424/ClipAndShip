@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
@@ -38,7 +37,7 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${window.location.origin}/connect-accounts`,
+        redirectTo: "https://video-spark-publish.vercel.app/connect-accounts",
         scopes: scopes,
         queryParams: {
           platform: platform // Pass platform info for later identification
