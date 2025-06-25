@@ -5,6 +5,7 @@ import { handleCustomOAuthCallback } from "@/utils/oauthUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -14,8 +15,9 @@ const OAuthCallback = () => {
   useEffect(() => {
     const processCallback = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
+        // Handle Supabase OAuth callback (access_token in hash)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const urlParams = new URLSearchParams(window.location.search);
         
         // Check for OAuth errors first
         const error = urlParams.get('error') || hashParams.get('error');
@@ -25,7 +27,6 @@ const OAuthCallback = () => {
         if (error) {
           console.error('OAuth error detected:', error, errorDescription, errorCode);
           
-          // Handle specific error types
           let userMessage = "Failed to connect account. Please try again.";
           
           if (error === 'server_error' && errorCode === 'unexpected_failure') {
@@ -40,33 +41,79 @@ const OAuthCallback = () => {
             variant: "destructive",
           });
           
-          // Redirect to connect accounts page after showing error
           setTimeout(() => navigate("/connect-accounts"), 2000);
           return;
         }
         
-        // Check if we have a valid OAuth code
-        const code = urlParams.get('code');
-        if (!code) {
-          console.log('No OAuth code found, redirecting to connect accounts');
+        // Check for Supabase OAuth tokens in hash (for OAuth providers like Google)
+        const accessToken = hashParams.get('access_token');
+        const providerToken = hashParams.get('provider_token');
+        const refreshToken = hashParams.get('refresh_token');
+        
+        if (accessToken && providerToken) {
+          console.log('Processing Supabase OAuth callback with tokens');
+          
+          // Get the current user to identify which platform this is for
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (user) {
+            // Store the connection in our database
+            // We'll assume this is YouTube since that's what we're connecting
+            const { data, error } = await supabase
+              .from('social_tokens')
+              .upsert(
+                {
+                  user_id: user.id,
+                  platform: 'youtube',
+                  access_token: providerToken, // Use the provider token for API calls
+                  refresh_token: refreshToken,
+                  expires_at: hashParams.get('expires_at') ? 
+                    new Date(parseInt(hashParams.get('expires_at')!) * 1000).toISOString() : null,
+                },
+                {
+                  onConflict: 'user_id,platform'
+                }
+              )
+              .select()
+              .single();
+
+            if (error) {
+              console.error('Error storing social token:', error);
+              throw new Error('Failed to save connection');
+            }
+
+            toast({
+              title: "Success!",
+              description: "Successfully connected your YouTube account.",
+            });
+          }
+          
           navigate("/connect-accounts");
           return;
         }
         
-        // Process successful callback
-        const result = await handleCustomOAuthCallback();
+        // Check for custom OAuth code (for TikTok/Instagram)
+        const code = urlParams.get('code');
+        if (code) {
+          console.log('Processing custom OAuth callback with code');
+          const result = await handleCustomOAuthCallback();
+          
+          toast({
+            title: "Success!",
+            description: `Successfully connected your ${result.platform} account.`,
+          });
+          
+          navigate("/connect-accounts");
+          return;
+        }
         
-        toast({
-          title: "Success!",
-          description: `Successfully connected your ${result.platform} account.`,
-        });
-        
-        // Redirect to connect accounts page
+        // No OAuth parameters found
+        console.log('No OAuth parameters found, redirecting to connect accounts');
         navigate("/connect-accounts");
+        
       } catch (error) {
         console.error("OAuth callback error:", error);
         
-        // Handle different types of errors
         let errorMessage = "Failed to connect account. Please try again.";
         
         if (error instanceof Error) {
@@ -83,14 +130,12 @@ const OAuthCallback = () => {
           variant: "destructive",
         });
         
-        // Always redirect to connect accounts page on error
         setTimeout(() => navigate("/connect-accounts"), 2000);
       } finally {
         setProcessing(false);
       }
     };
 
-    // Always process the callback, even if no parameters are present
     processCallback();
   }, [navigate, toast]);
 
@@ -106,7 +151,6 @@ const OAuthCallback = () => {
             Please wait while we process your connection...
           </p>
           
-          {/* Back button for users who want to return immediately */}
           <Link
             to="/connect-accounts"
             className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"

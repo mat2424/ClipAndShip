@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
@@ -58,45 +59,108 @@ export const SocialAccountsManager = () => {
     }
   };
 
-  // Listen for OAuth callback and errors, refresh accounts
+  // Listen for OAuth callback and process tokens
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    
-    // Check for OAuth errors in URL params or hash
-    const error = urlParams.get('error') || hashParams.get('error');
-    const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
-    
-    if (error) {
-      console.error('OAuth error:', error, errorDescription);
-      toast({
-        title: "Connection Failed",
-        description: errorDescription 
-          ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
-          : "Failed to connect your account. Please try again.",
-        variant: "destructive",
-      });
-      setIsConnecting(null);
+    const processOAuthCallback = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const urlParams = new URLSearchParams(window.location.search);
       
-      // Clean up URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
-      return;
-    }
-    
-    // Check for successful OAuth callback
-    if (urlParams.get('code') || urlParams.get('access_token')) {
-      // OAuth callback detected, refresh accounts and show success
-      setTimeout(() => {
-        refreshAccounts();
-        setIsConnecting(null);
+      // Check for OAuth errors
+      const error = urlParams.get('error') || hashParams.get('error');
+      const errorDescription = urlParams.get('error_description') || hashParams.get('error_description');
+      
+      if (error) {
+        console.error('OAuth error:', error, errorDescription);
         toast({
-          title: "Success",
-          description: "Successfully connected your account!",
+          title: "Connection Failed",
+          description: errorDescription 
+            ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+            : "Failed to connect your account. Please try again.",
+          variant: "destructive",
         });
+        setIsConnecting(null);
+        
+        // Clean up URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+      
+      // Check for Supabase OAuth tokens in hash
+      const accessToken = hashParams.get('access_token');
+      const providerToken = hashParams.get('provider_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const expiresAt = hashParams.get('expires_at');
+      
+      if (accessToken && providerToken) {
+        console.log('Processing OAuth callback with tokens');
+        
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (user) {
+            // Store the YouTube connection
+            const { error: insertError } = await supabase
+              .from('social_tokens')
+              .upsert(
+                {
+                  user_id: user.id,
+                  platform: 'youtube',
+                  access_token: providerToken,
+                  refresh_token: refreshToken,
+                  expires_at: expiresAt ? 
+                    new Date(parseInt(expiresAt) * 1000).toISOString() : null,
+                },
+                {
+                  onConflict: 'user_id,platform'
+                }
+              );
+
+            if (insertError) {
+              console.error('Error storing social token:', insertError);
+              throw new Error('Failed to save connection');
+            }
+
+            toast({
+              title: "Success!",
+              description: "Successfully connected your YouTube account.",
+            });
+            
+            // Refresh accounts and clear connecting state
+            refreshAccounts();
+            setIsConnecting(null);
+          }
+        } catch (error) {
+          console.error('Error processing OAuth callback:', error);
+          toast({
+            title: "Connection Failed",
+            description: "Failed to save your connection. Please try again.",
+            variant: "destructive",
+          });
+          setIsConnecting(null);
+        }
+        
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
-      }, 1000);
-    }
+        return;
+      }
+      
+      // Check for authorization code (custom flows)
+      if (urlParams.get('code')) {
+        // Custom OAuth callback detected, refresh accounts
+        setTimeout(() => {
+          refreshAccounts();
+          setIsConnecting(null);
+          toast({
+            title: "Success",
+            description: "Successfully connected your account!",
+          });
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 1000);
+      }
+    };
+
+    processOAuthCallback();
   }, [refreshAccounts, toast]);
 
   const isConnected = (platform: SocialPlatform) => {
