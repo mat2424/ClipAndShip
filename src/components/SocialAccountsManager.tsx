@@ -28,7 +28,10 @@ export const SocialAccountsManager = () => {
   const handleConnect = async (platform: SocialPlatform) => {
     const platformConfig = platforms.find(p => p.platform === platform);
     
+    console.log(`🎯 User clicked connect for: ${platform}`);
+    
     if (platformConfig?.locked) {
+      console.log(`🔒 Platform ${platform} is locked`);
       toast({
         title: "Coming Soon",
         description: `${platformConfig.name} integration is coming soon! Stay tuned for updates.`,
@@ -40,6 +43,7 @@ export const SocialAccountsManager = () => {
     setIsConnecting(platform);
     
     try {
+      console.log(`🚀 Initiating OAuth for ${platform}`);
       await initiateOAuth(platform);
       
       toast({
@@ -48,7 +52,7 @@ export const SocialAccountsManager = () => {
       });
       
     } catch (error) {
-      console.error(`Error connecting to ${platform}:`, error);
+      console.error(`💥 Error connecting to ${platform}:`, error);
       toast({
         title: "Connection Failed",
         description: error instanceof Error ? error.message : `Failed to connect to ${platform}. Please try again.`,
@@ -59,8 +63,12 @@ export const SocialAccountsManager = () => {
   };
 
   const isConnected = (platform: SocialPlatform) => {
-    return connectedAccounts.some(account => account.platform === platform);
+    const connected = connectedAccounts.some(account => account.platform === platform);
+    console.log(`🔍 Checking if ${platform} is connected:`, connected);
+    return connected;
   };
+
+  console.log('📊 Current connected accounts:', connectedAccounts);
 
   return (
     <div className="space-y-6">

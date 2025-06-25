@@ -15,9 +15,17 @@ const OAuthCallback = () => {
   useEffect(() => {
     const processCallback = async () => {
       try {
+        console.log('🔄 OAuth callback started');
+        console.log('📍 Current URL:', window.location.href);
+        console.log('🔗 Hash params:', window.location.hash);
+        console.log('🔗 Search params:', window.location.search);
+        
         // Handle Supabase OAuth callback (access_token in hash)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const urlParams = new URLSearchParams(window.location.search);
+        
+        console.log('📋 Hash params object:', Object.fromEntries(hashParams.entries()));
+        console.log('📋 URL params object:', Object.fromEntries(urlParams.entries()));
         
         // Check for OAuth errors first
         const error = urlParams.get('error') || hashParams.get('error');
@@ -25,7 +33,7 @@ const OAuthCallback = () => {
         const errorCode = urlParams.get('error_code') || hashParams.get('error_code');
         
         if (error) {
-          console.error('OAuth error detected:', error, errorDescription, errorCode);
+          console.error('❌ OAuth error detected:', { error, errorDescription, errorCode });
           
           let userMessage = "Failed to connect account. Please try again.";
           
@@ -50,15 +58,39 @@ const OAuthCallback = () => {
         const providerToken = hashParams.get('provider_token');
         const refreshToken = hashParams.get('refresh_token');
         const expiresAt = hashParams.get('expires_at');
+        const expiresIn = hashParams.get('expires_in');
+        
+        console.log('🎫 Token info:', {
+          hasAccessToken: !!accessToken,
+          hasProviderToken: !!providerToken,
+          hasRefreshToken: !!refreshToken,
+          expiresAt,
+          expiresIn
+        });
         
         if (accessToken && providerToken) {
-          console.log('Processing OAuth tokens for YouTube connection...');
+          console.log('✅ Processing OAuth tokens for YouTube connection...');
           
           // Get the current user to store the connection
-          const { data: { user } } = await supabase.auth.getUser();
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          
+          if (userError) {
+            console.error('❌ Error getting user:', userError);
+            throw userError;
+          }
           
           if (user) {
-            console.log('Storing YouTube connection for user:', user.id);
+            console.log('👤 Storing YouTube connection for user:', user.id);
+            
+            // Calculate expiration date
+            let expirationDate = null;
+            if (expiresAt) {
+              expirationDate = new Date(parseInt(expiresAt) * 1000).toISOString();
+            } else if (expiresIn) {
+              expirationDate = new Date(Date.now() + parseInt(expiresIn) * 1000).toISOString();
+            }
+            
+            console.log('💾 Saving token with expiration:', expirationDate);
             
             // Store the YouTube connection in our database
             const { data, error: dbError } = await supabase
@@ -69,7 +101,7 @@ const OAuthCallback = () => {
                   platform: 'youtube',
                   access_token: providerToken, // Use provider token for YouTube API calls
                   refresh_token: refreshToken,
-                  expires_at: expiresAt ? new Date(parseInt(expiresAt) * 1000).toISOString() : null,
+                  expires_at: expirationDate,
                 },
                 {
                   onConflict: 'user_id,platform'
@@ -79,17 +111,18 @@ const OAuthCallback = () => {
               .single();
 
             if (dbError) {
-              console.error('Error storing social token:', dbError);
+              console.error('❌ Error storing social token:', dbError);
               throw new Error('Failed to save connection');
             }
 
-            console.log('YouTube connection saved successfully:', data);
+            console.log('✅ YouTube connection saved successfully:', data);
             
             toast({
               title: "Success!",
               description: "Successfully connected your YouTube account.",
             });
           } else {
+            console.error('❌ No authenticated user found');
             throw new Error('No authenticated user found');
           }
           
@@ -100,7 +133,7 @@ const OAuthCallback = () => {
         // Check for custom OAuth code (for TikTok/Instagram)
         const code = urlParams.get('code');
         if (code) {
-          console.log('Processing custom OAuth callback with code');
+          console.log('🔄 Processing custom OAuth callback with code');
           const result = await handleCustomOAuthCallback();
           
           toast({
@@ -113,11 +146,11 @@ const OAuthCallback = () => {
         }
         
         // No OAuth parameters found
-        console.log('No OAuth parameters found, redirecting to connect accounts');
+        console.log('⚠️ No OAuth parameters found, redirecting to connect accounts');
         navigate("/connect-accounts");
         
       } catch (error) {
-        console.error("OAuth callback error:", error);
+        console.error("💥 OAuth callback error:", error);
         
         let errorMessage = "Failed to connect account. Please try again.";
         
@@ -153,7 +186,7 @@ const OAuthCallback = () => {
             Processing Connection
           </h2>
           <p className="text-gray-600 mb-6">
-            Please wait while we process your YouTube connection...
+            Please wait while we process your connection...
           </p>
           
           <Link

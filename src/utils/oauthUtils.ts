@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 
@@ -38,28 +37,40 @@ const customOAuthUrls = {
 
 export const initiateOAuth = async (platform: SocialPlatform) => {
   try {
+    console.log(`🚀 Starting OAuth for platform: ${platform}`);
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
+      console.error('❌ User not authenticated');
       throw new Error("User not authenticated");
     }
 
+    console.log(`✅ User authenticated: ${user.id}`);
+
     // Handle custom OAuth flows for TikTok and Instagram
     if (platform === 'tiktok' || platform === 'instagram') {
+      console.log(`🔀 Using custom OAuth flow for ${platform}`);
       return await initiateCustomOAuth(platform);
     }
 
     // Check if platform is supported by Supabase
     if (!platformProviderMap[platform]) {
+      console.error(`❌ Platform ${platform} not supported`);
       throw new Error(`${platform} OAuth is not currently supported`);
     }
 
     const provider = platformProviderMap[platform];
     const scopes = platformScopes[platform];
 
-    // Redirect to oauth-callback page for processing
+    // Use the current origin for redirect
     const redirectTo = `${window.location.origin}/oauth-callback`;
 
-    console.log('Initiating OAuth with redirect:', redirectTo);
+    console.log(`🔗 OAuth config:`, {
+      provider,
+      scopes,
+      redirectTo,
+      currentUrl: window.location.href
+    });
 
     // Use Supabase's built-in OAuth with platform-specific scopes
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -74,12 +85,14 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     });
 
     if (error) {
+      console.error(`❌ OAuth initiation failed:`, error);
       throw error;
     }
 
+    console.log(`✅ OAuth initiated successfully:`, data);
     return data;
   } catch (error) {
-    console.error(`Error initiating OAuth for ${platform}:`, error);
+    console.error(`💥 Error initiating OAuth for ${platform}:`, error);
     throw error;
   }
 };
