@@ -6,13 +6,13 @@ export const LandingFooter = () => {
         <div className="flex items-center justify-center space-x-3 mb-4">
           <img 
             src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
-            alt="AI Video Publisher Logo" 
+            alt="Clip & Ship AI Logo" 
             className="w-8 h-8 object-contain"
           />
-          <span className="text-xl font-bold text-white">AI Video Publisher</span>
+          <span className="text-xl font-bold text-white">Clip & Ship AI</span>
         </div>
         <p className="text-gray-400">
-          © 2025 AI Video Publisher. All rights reserved.
+          © 2025 Clip & Ship AI. All rights reserved.
         </p>
       </div>
     </footer>

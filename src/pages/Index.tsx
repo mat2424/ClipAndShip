@@ -51,10 +51,10 @@ const Index = () => {
           <div className="flex items-center space-x-3">
             <img 
               src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
-              alt="AI Video Publisher Logo" 
+              alt="Clip & Ship AI Logo" 
               className="w-10 h-10 object-contain"
             />
-            <h1 className="text-2xl font-bold text-white">AI Video Publisher</h1>
+            <h1 className="text-2xl font-bold text-white">Clip & Ship AI</h1>
           </div>
           <div className="flex items-center space-x-4">
             <CreditBalance />

@@ -19,7 +19,7 @@ export const BenefitsSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-4xl font-bold text-white mb-6">
-              Why Choose AI Video Publisher?
+              Why Choose Clip & Ship AI?
             </h2>
             <p className="text-gray-300 text-lg mb-8">
               Our platform combines cutting-edge AI technology with seamless social media integration 
@@ -37,7 +37,7 @@ export const BenefitsSection = () => {
           <div className="bg-[#621fff] rounded-lg p-8">
             <h3 className="text-2xl font-bold text-white mb-4">Ready to Get Started?</h3>
             <p className="text-pink-200 mb-6">
-              Join thousands of content creators who are already using AI Video Publisher to grow their audience.
+              Join thousands of content creators who are already using Clip & Ship AI to grow their audience.
             </p>
             <Link to="/app" className="inline-block">
               <Button className="bg-white text-[#621fff] hover:bg-gray-100 px-6 py-3 font-medium rounded-lg transition-colors w-full">
