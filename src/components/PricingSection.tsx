@@ -160,8 +160,8 @@ export const PricingSection = () => {
           {SUBSCRIPTION_TIERS.map(tier => {
           const IconComponent = tier.icon;
           return <div key={tier.name} className="border rounded-lg p-4 border-pink-300">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center space-x-2">
+                <div className="flex justify-between items-start mb-3 ">
+                  <div className="flex items-center space-x-2 font-black ">
                     <IconComponent className={`h-5 w-5 text-${tier.color}-400`} />
                     <div className="font-semibold text-white">{tier.name}</div>
                   </div>

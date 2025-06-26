@@ -134,7 +134,7 @@ export const VideoIdeasList = () => {
   return <>
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b bg-[#621fff]">
-          <h2 className="text-xl font-semibold text-zinc-950">Your Videos</h2>
+          <h2 className="text-xl font-semibold mb-4 text-white">Your Videos</h2>
         </div>
         <div className="divide-y">
           {videoIdeas.length === 0 ? <div className="p-6 text-center text-gray-500">
@@ -143,7 +143,7 @@ export const VideoIdeasList = () => {
           const statusDisplay = getStatusDisplay(idea);
           return <div key={idea.id} className="p-6 bg-[#621fff]">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="flex-1 mr-4 text-zinc-950 text-center font-semibold text-2xl">
+                    <p className="flex-1 mr-4 text-zinc-950 font-semibold text-2xl text-left">
                       {idea.idea_text}
                     </p>
                     <div className="flex gap-2 items-center">

@@ -22,7 +22,7 @@ export const VoiceSettings = ({
           <span>Use Custom Voice</span>
           {!isProUser && <Lock className="w-4 h-4 text-gray-400" />}
         </Label>
-        {!isProUser && <span className="text-sm hover:underline cursor-pointer text-[#ff00cf]/[0.31]">
+        {!isProUser && <span className="text-sm hover:underline cursor-pointer text-[#ff00cf]">
             Upgrade to Pro
           </span>}
       </div>
