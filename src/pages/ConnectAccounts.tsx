@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { AuthForm } from "@/components/AuthForm";
 import { SocialAccountsManager } from "@/components/SocialAccountsManager";
-import { CreditBalance } from "@/components/CreditBalance";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
@@ -46,45 +45,7 @@ const ConnectAccounts = () => {
     <div className="min-h-screen bg-black">
       <header className="bg-gray-900 shadow-lg border-b border-pink-500">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-          {/* Mobile Layout - Stacked */}
-          <div className="block sm:hidden">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2 min-w-0 flex-1">
-                <img 
-                  src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
-                  alt="Clip & Ship AI Logo" 
-                  className="w-7 h-7 object-contain flex-shrink-0"
-                />
-                <h1 className="text-sm font-bold text-white truncate">Connect Accounts</h1>
-              </div>
-            </div>
-            
-            {/* Mobile info stack */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-3">
-                <CreditBalance />
-                <span className="text-pink-200">Free</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Link
-                  to="/app"
-                  className="flex items-center space-x-1 bg-gray-700 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors border border-pink-500"
-                >
-                  <ArrowLeft className="w-3 h-3" />
-                  <span>Back</span>
-                </Link>
-                <button
-                  onClick={() => supabase.auth.signOut()}
-                  className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Layout - Original */}
-          <div className="hidden sm:flex sm:justify-between sm:items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
               <img 
                 src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
@@ -94,12 +55,12 @@ const ConnectAccounts = () => {
               <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-white truncate">Connect Social Accounts</h1>
             </div>
             <div className="flex items-center justify-end space-x-2 sm:space-x-4 flex-shrink-0">
-              <CreditBalance />
               <Link
                 to="/app"
                 className="flex items-center space-x-1 sm:space-x-2 bg-gray-700 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-md hover:bg-gray-600 transition-colors border border-pink-500 text-xs sm:text-sm"
               >
                 <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="hidden xs:inline sm:hidden">Back</span>
                 <span className="hidden sm:inline">Back to Main Page</span>
               </Link>
               <button
@@ -114,10 +75,10 @@ const ConnectAccounts = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="bg-[#621fff] rounded-lg shadow-lg p-3 sm:p-6">
-          <div className="text-center mb-4 sm:mb-8">
-            <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-white mb-2">Connect Your Social Media Accounts</h2>
-            <p className="text-pink-200 text-xs sm:text-base px-2">
+        <div className="bg-[#621fff] rounded-lg shadow-lg p-4 sm:p-6">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">Connect Your Social Media Accounts</h2>
+            <p className="text-pink-200 text-sm sm:text-base px-2">
               Link your social media accounts to automatically publish your AI-generated videos across multiple platforms.
             </p>
           </div>
