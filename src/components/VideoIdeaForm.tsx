@@ -10,8 +10,8 @@ export const VideoIdeaForm = () => {
   const {
     ideaText,
     setIdeaText,
-    useAiVoice,
-    setUseAiVoice,
+    useCustomVoice,
+    setUseCustomVoice,
     voiceFile,
     setVoiceFile,
     selectedPlatforms,
@@ -38,9 +38,10 @@ export const VideoIdeaForm = () => {
         </div>
 
         <VoiceSettings
-          useAiVoice={useAiVoice}
-          onUseAiVoiceChange={setUseAiVoice}
+          useCustomVoice={useCustomVoice}
+          onUseCustomVoiceChange={setUseCustomVoice}
           onVoiceFileChange={setVoiceFile}
+          userTier={userTier}
         />
 
         <PlatformSelector

@@ -13,7 +13,7 @@ interface WebhookResponse {
 
 export const useVideoIdeaForm = () => {
   const [ideaText, setIdeaText] = useState("");
-  const [useAiVoice, setUseAiVoice] = useState(true);
+  const [useCustomVoice, setUseCustomVoice] = useState(false);
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [userTier, setUserTier] = useState<string>("free");
@@ -102,7 +102,7 @@ export const useVideoIdeaForm = () => {
       }
 
       let voiceFileUrl = null;
-      if (!useAiVoice && voiceFile) {
+      if (useCustomVoice && voiceFile) {
         voiceFileUrl = await handleVoiceFileUpload(voiceFile);
       }
 
@@ -112,7 +112,7 @@ export const useVideoIdeaForm = () => {
         .insert({
           user_id: user.id,
           idea_text: ideaText,
-          use_ai_voice: useAiVoice,
+          use_ai_voice: !useCustomVoice, // Invert the logic
           voice_file_url: voiceFileUrl,
           selected_platforms: selectedPlatforms,
           status: 'processing',
@@ -130,7 +130,7 @@ export const useVideoIdeaForm = () => {
           video_idea_id: videoIdea.id,
           video_idea: ideaText,
           selected_platforms: selectedPlatforms,
-          use_ai_voice: useAiVoice
+          use_ai_voice: !useCustomVoice // Invert the logic
         }
       });
 
@@ -185,7 +185,7 @@ export const useVideoIdeaForm = () => {
       setIdeaText("");
       setSelectedPlatforms([]);
       setVoiceFile(null);
-      setUseAiVoice(true);
+      setUseCustomVoice(false);
 
     } catch (error: any) {
       console.error("Error generating video:", error);
@@ -202,8 +202,8 @@ export const useVideoIdeaForm = () => {
   return {
     ideaText,
     setIdeaText,
-    useAiVoice,
-    setUseAiVoice,
+    useCustomVoice,
+    setUseCustomVoice,
     voiceFile,
     setVoiceFile,
     selectedPlatforms,
