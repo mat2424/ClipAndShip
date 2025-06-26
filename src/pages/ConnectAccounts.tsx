@@ -5,7 +5,17 @@ import { User } from "@supabase/supabase-js";
 import { AuthForm } from "@/components/AuthForm";
 import { SocialAccountsManager } from "@/components/SocialAccountsManager";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Settings, Menu, X, CreditCard, User as UserIcon, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { CreditBalance } from "@/components/CreditBalance";
 
 const ConnectAccounts = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -45,30 +55,82 @@ const ConnectAccounts = () => {
     <div className="min-h-screen bg-black">
       <header className="bg-gray-900 shadow-lg border-b border-pink-500">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+          <div className="flex justify-between items-center">
+            {/* Logo and Title - Clickable to return to landing */}
+            <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity">
               <img 
                 src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
                 alt="Clip & Ship AI Logo" 
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain flex-shrink-0"
               />
               <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-white truncate">Connect Social Accounts</h1>
-            </div>
-            <div className="flex items-center justify-end space-x-2 sm:space-x-4 flex-shrink-0">
+            </Link>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden sm:flex items-center space-x-4">
+              <CreditBalance />
               <Link
                 to="/app"
-                className="flex items-center space-x-1 sm:space-x-2 bg-gray-700 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-md hover:bg-gray-600 transition-colors border border-pink-500 text-xs sm:text-sm"
+                className="flex items-center space-x-2 bg-gray-700 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition-colors border border-pink-500 text-sm"
               >
-                <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="hidden xs:inline sm:hidden">Back</span>
-                <span className="hidden sm:inline">Back to Main Page</span>
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Main Page</span>
               </Link>
               <button
                 onClick={() => supabase.auth.signOut()}
-                className="bg-red-600 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-md hover:bg-red-700 transition-colors text-xs sm:text-sm whitespace-nowrap"
+                className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors text-sm"
               >
                 Sign Out
               </button>
+            </div>
+
+            {/* Mobile Dropdown Menu */}
+            <div className="sm:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="border-pink-500 text-white hover:bg-gray-800">
+                    <Menu className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-pink-500 text-white">
+                  <DropdownMenuLabel className="text-pink-400">Account Settings</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-pink-500/30" />
+                  
+                  <DropdownMenuItem asChild className="hover:bg-gray-700">
+                    <Link to="/app" className="flex items-center space-x-2 w-full">
+                      <UserIcon className="w-4 h-4" />
+                      <span>Main Page</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="hover:bg-gray-700 cursor-default">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center space-x-2">
+                        <CreditCard className="w-4 h-4" />
+                        <span>Credits</span>
+                      </div>
+                      <CreditBalance />
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="hover:bg-gray-700 cursor-default">
+                    <div className="flex items-center space-x-2">
+                      <Settings className="w-4 h-4" />
+                      <span>Free Plan</span>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator className="bg-pink-500/30" />
+                  
+                  <DropdownMenuItem 
+                    onClick={() => supabase.auth.signOut()}
+                    className="hover:bg-red-900/50 text-red-400 hover:text-red-300"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
