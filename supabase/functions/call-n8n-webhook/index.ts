@@ -17,14 +17,18 @@ serve(async (req) => {
       video_idea_id, 
       video_idea, 
       selected_platforms, 
+      upload_targets,
+      social_accounts,
       use_ai_voice, 
-      preview_video_url 
+      preview_video_url,
+      voice_file_url
     } = await req.json();
 
     console.log(`🎬 N8N Webhook called for ${phase} phase`, {
       video_idea_id,
       video_idea: video_idea?.substring(0, 50) + '...',
-      selected_platforms,
+      selected_platforms: selected_platforms || upload_targets,
+      social_accounts_provided: !!social_accounts,
       phase
     });
 
@@ -37,21 +41,26 @@ serve(async (req) => {
     // Prepare the payload based on the phase
     let payload;
     if (phase === 'preview') {
-      // Phase 1: Generate preview
+      // Phase 1: Generate preview with social account info
       payload = {
         phase: 'preview',
         video_idea_id,
         video_idea,
-        selected_platforms,
-        use_ai_voice: use_ai_voice || true
+        upload_targets: upload_targets || selected_platforms, // Support both formats
+        selected_platforms: selected_platforms || upload_targets,
+        social_accounts: social_accounts || {},
+        use_ai_voice: use_ai_voice || true,
+        voice_file_url: voice_file_url || null
       };
     } else if (phase === 'publish') {
-      // Phase 2: Publish to platforms
+      // Phase 2: Publish to platforms with tokens
       payload = {
         phase: 'publish',
         video_idea_id,
         video_idea,
-        selected_platforms,
+        upload_targets: upload_targets || selected_platforms,
+        selected_platforms: selected_platforms || upload_targets,
+        social_accounts: social_accounts || {},
         preview_video_url
       };
     } else {
@@ -59,7 +68,7 @@ serve(async (req) => {
     }
 
     console.log("🚀 Calling N8N webhook:", webhookUrl);
-    console.log("📦 Payload:", payload);
+    console.log("📦 Payload:", JSON.stringify(payload, null, 2));
 
     // Call the N8N webhook
     const response = await fetch(webhookUrl, {
