@@ -13,12 +13,14 @@ export const CallToActionSection = () => {
         <p className="text-gray-300 text-lg mb-8">
           No credit card required. Get started in minutes and see the power of AI-driven video creation.
         </p>
-        <Link to="/app" className="inline-block">
-          <Button className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 text-lg font-medium rounded-lg transition-colors">
-            Get Started Free
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </Link>
+        <div className="flex justify-center">
+          <Link to="/app" className="inline-block">
+            <Button className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 text-lg font-medium rounded-lg transition-colors">
+              Get Started Free
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );
