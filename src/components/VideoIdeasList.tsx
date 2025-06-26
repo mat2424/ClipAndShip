@@ -133,7 +133,7 @@ export const VideoIdeasList = () => {
   }
   return <>
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b">
+        <div className="p-6 border-b bg-[#621fff]">
           <h2 className="text-xl font-semibold text-zinc-950">Your Videos</h2>
         </div>
         <div className="divide-y">
@@ -141,9 +141,9 @@ export const VideoIdeasList = () => {
               No videos yet. Create your first video above!
             </div> : videoIdeas.map(idea => {
           const statusDisplay = getStatusDisplay(idea);
-          return <div key={idea.id} className="p-6">
+          return <div key={idea.id} className="p-6 bg-[#621fff]">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-sm text-gray-600 flex-1 mr-4">
+                    <p className="flex-1 mr-4 text-zinc-950 text-xl text-center">
                       {idea.idea_text}
                     </p>
                     <div className="flex gap-2 items-center">
@@ -192,7 +192,7 @@ export const VideoIdeasList = () => {
                       </div>
                     </div>}
 
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-black ">
                     {new Date(idea.created_at).toLocaleDateString()}
                   </div>
                 </div>;
