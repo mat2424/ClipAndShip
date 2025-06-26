@@ -34,8 +34,8 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div>
       </div>
     );
   }
@@ -45,8 +45,8 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-black">
+      <header className="bg-gray-900 shadow-lg border-b border-pink-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img 
@@ -54,20 +54,20 @@ const Index = () => {
               alt="AI Video Publisher Logo" 
               className="w-10 h-10 object-contain"
             />
-            <h1 className="text-2xl font-bold text-gray-900">AI Video Publisher</h1>
+            <h1 className="text-2xl font-bold text-white">AI Video Publisher</h1>
           </div>
           <div className="flex items-center space-x-4">
             <CreditBalance />
             <Link
               to="/connect-accounts"
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 transition-colors"
             >
               <Settings className="w-4 h-4" />
               <span>My Social Accounts</span>
             </Link>
             <button
               onClick={() => supabase.auth.signOut()}
-              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+              className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors border border-pink-500"
             >
               Sign Out
             </button>
