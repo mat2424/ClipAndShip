@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -91,36 +90,29 @@ const Index = () => {
             <div className="sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="border-pink-500 text-white hover:bg-gray-800">
+                  <Button variant="outline" size="sm" className="border-pink-500 text-white hover:bg-gray-800 bg-gray-900">
                     <Menu className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-pink-500 text-white z-50">
-                  <DropdownMenuLabel className="text-pink-400">Account Settings</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-64 bg-gray-900 border-pink-500 text-white z-50">
+                  <DropdownMenuLabel className="text-pink-400 flex items-center justify-between">
+                    <span>Account Settings</span>
+                    <CreditBalance />
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-pink-500/30" />
                   
-                  <DropdownMenuItem asChild className="hover:bg-gray-700">
+                  <DropdownMenuItem asChild className="hover:bg-gray-800 focus:bg-gray-800">
                     <Link to="/connect-accounts" className="flex items-center space-x-2 w-full">
                       <Settings className="w-4 h-4" />
                       <span>My Social Accounts</span>
                     </Link>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="hover:bg-gray-700 cursor-default">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center space-x-2">
-                        <CreditCard className="w-4 h-4" />
-                        <span>Credits</span>
-                      </div>
-                      <CreditBalance />
-                    </div>
-                  </DropdownMenuItem>
-                  
                   <DropdownMenuSeparator className="bg-pink-500/30" />
                   
                   <DropdownMenuItem 
                     onClick={() => supabase.auth.signOut()}
-                    className="hover:bg-red-900/50 text-red-400 hover:text-red-300"
+                    className="hover:bg-red-900/50 text-red-400 hover:text-red-300 focus:bg-red-900/50"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     <span>Sign Out</span>
