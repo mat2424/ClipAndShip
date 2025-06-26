@@ -44,6 +44,10 @@ const Landing = () => {
     "Secure account management and social media integration"
   ];
 
+  const handleWatchDemo = () => {
+    window.open("https://youtu.be/s0IcASiuR4o", "_blank");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
@@ -68,14 +72,14 @@ const Landing = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <Link
-                to="/"
+                to="/app"
                 className="bg-pink-600 text-white px-6 py-2 rounded-md hover:bg-pink-700 transition-colors font-medium"
               >
                 Go to Dashboard
               </Link>
             ) : (
               <Link
-                to="/"
+                to="/app"
                 className="bg-pink-600 text-white px-6 py-2 rounded-md hover:bg-pink-700 transition-colors font-medium"
               >
                 Get Started
@@ -97,13 +101,17 @@ const Landing = () => {
               No video editing skills required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/" className="inline-block">
+              <Link to="/app" className="inline-block">
                 <Button className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 text-lg font-medium rounded-lg transition-colors">
                   Start Creating Videos
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <Button variant="outline" className="border-pink-500 text-pink-400 hover:bg-pink-500/10 px-8 py-4 text-lg font-medium rounded-lg">
+              <Button 
+                variant="outline" 
+                className="border-pink-500 text-pink-400 hover:bg-pink-500/10 px-8 py-4 text-lg font-medium rounded-lg"
+                onClick={handleWatchDemo}
+              >
                 <Play className="w-5 h-5 mr-2" />
                 Watch Demo
               </Button>
@@ -162,7 +170,7 @@ const Landing = () => {
               <p className="text-pink-200 mb-6">
                 Join thousands of content creators who are already using AI Video Publisher to grow their audience.
               </p>
-              <Link to="/" className="inline-block">
+              <Link to="/app" className="inline-block">
                 <Button className="bg-white text-[#621fff] hover:bg-gray-100 px-6 py-3 font-medium rounded-lg transition-colors w-full">
                   Create Your First Video
                 </Button>
@@ -181,7 +189,7 @@ const Landing = () => {
           <p className="text-gray-300 text-lg mb-8">
             No credit card required. Get started in minutes and see the power of AI-driven video creation.
           </p>
-          <Link to="/" className="inline-block">
+          <Link to="/app" className="inline-block">
             <Button className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 text-lg font-medium rounded-lg transition-colors">
               Get Started Free
               <ArrowRight className="w-5 h-5 ml-2" />
