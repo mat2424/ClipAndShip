@@ -46,52 +46,58 @@ const ConnectAccounts = () => {
     <div className="min-h-screen bg-black">
       <header className="bg-gray-900 shadow-lg border-b border-pink-500">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-          {/* Mobile Layout - Stacked */}
-          <div className="block sm:hidden">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2 min-w-0 flex-1">
+          {/* Mobile Layout - Fully Stacked */}
+          <div className="block sm:hidden space-y-3">
+            {/* Logo and Title Row */}
+            <div className="flex items-center justify-center">
+              <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
                 <img 
                   src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
                   alt="Clip & Ship AI Logo" 
-                  className="w-7 h-7 object-contain flex-shrink-0"
+                  className="w-6 h-6 object-contain flex-shrink-0"
                 />
-                <h1 className="text-sm font-bold text-white truncate">Connect Accounts</h1>
+                <h1 className="text-base font-bold text-white">Clip & Ship AI</h1>
+              </Link>
+            </div>
+            
+            {/* Account Info Stack */}
+            <div className="flex flex-col items-center space-y-2 text-center">
+              <div className="text-xs text-pink-200">Connect Accounts</div>
+              <div className="flex items-center space-x-4">
+                <CreditBalance />
+                <span className="text-xs text-pink-200">Free Plan</span>
               </div>
             </div>
             
-            {/* Mobile info stack */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-3">
-                <CreditBalance />
-                <span className="text-pink-200">Free</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Link
-                  to="/app"
-                  className="flex items-center space-x-1 bg-gray-700 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors border border-pink-500"
-                >
-                  <ArrowLeft className="w-3 h-3" />
-                  <span>Back</span>
-                </Link>
-                <button
-                  onClick={() => supabase.auth.signOut()}
-                  className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
+            {/* Action Buttons Stack */}
+            <div className="flex flex-col space-y-2">
+              <Link
+                to="/app"
+                className="flex items-center justify-center space-x-2 bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-600 transition-colors border border-pink-500"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Main Page</span>
+              </Link>
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 transition-colors w-full"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
 
           {/* Desktop Layout - Original */}
           <div className="hidden sm:flex sm:justify-between sm:items-center">
             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-              <img 
-                src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
-                alt="Clip & Ship AI Logo" 
-                className="w-8 h-8 sm:w-10 sm:h-10 object-contain flex-shrink-0"
-              />
-              <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-white truncate">Connect Social Accounts</h1>
+              <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity">
+                <img 
+                  src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
+                  alt="Clip & Ship AI Logo" 
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain flex-shrink-0"
+                />
+                <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-white truncate">Connect Social Accounts</h1>
+              </Link>
             </div>
             <div className="flex items-center justify-end space-x-2 sm:space-x-4 flex-shrink-0">
               <CreditBalance />
