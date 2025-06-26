@@ -143,7 +143,7 @@ export const VideoIdeasList = () => {
           const statusDisplay = getStatusDisplay(idea);
           return <div key={idea.id} className="p-6 bg-[#621fff]">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="flex-1 mr-4 text-zinc-950 text-xl text-center">
+                    <p className="flex-1 mr-4 text-zinc-950 text-center font-semibold text-2xl">
                       {idea.idea_text}
                     </p>
                     <div className="flex gap-2 items-center">
@@ -161,7 +161,7 @@ export const VideoIdeasList = () => {
                   </div>
                   
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {idea.selected_platforms.map(platform => <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                    {idea.selected_platforms.map(platform => <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
                         {platform}
                       </span>)}
                   </div>
