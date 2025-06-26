@@ -1,67 +1,104 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    console.log('Received request to call n8n webhook');
-    
-    const { video_idea, selected_platforms, use_ai_voice } = await req.json();
-    
-    console.log('Request data:', { video_idea, selected_platforms, use_ai_voice });
+    const { 
+      phase, 
+      video_idea_id, 
+      video_idea, 
+      selected_platforms, 
+      use_ai_voice, 
+      preview_video_url 
+    } = await req.json();
 
-    // Call the n8n webhook
-    const webhookUrl = "https://kazzz24.app.n8n.cloud/webhook-test/9a1ec0db-1b93-4c5e-928f-a003ece93ba9";
-    
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    console.log(`🎬 N8N Webhook called for ${phase} phase`, {
+      video_idea_id,
+      video_idea: video_idea?.substring(0, 50) + '...',
+      selected_platforms,
+      phase
+    });
+
+    // Get the webhook URL from environment
+    const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
+    if (!webhookUrl) {
+      throw new Error("VIDEO_GENERATION_WEBHOOK_URL not configured");
+    }
+
+    // Prepare the payload based on the phase
+    let payload;
+    if (phase === 'preview') {
+      // Phase 1: Generate preview
+      payload = {
+        phase: 'preview',
+        video_idea_id,
         video_idea,
         selected_platforms,
-        use_ai_voice
-      }),
+        use_ai_voice: use_ai_voice || true
+      };
+    } else if (phase === 'publish') {
+      // Phase 2: Publish to platforms
+      payload = {
+        phase: 'publish',
+        video_idea_id,
+        video_idea,
+        selected_platforms,
+        preview_video_url
+      };
+    } else {
+      throw new Error(`Invalid phase: ${phase}. Must be 'preview' or 'publish'`);
+    }
+
+    console.log("🚀 Calling N8N webhook:", webhookUrl);
+    console.log("📦 Payload:", payload);
+
+    // Call the N8N webhook
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      console.error(`Webhook returned status: ${response.status}`);
-      throw new Error(`Webhook returned status: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ N8N webhook failed (${response.status}):`, errorText);
+      throw new Error(`N8N webhook failed with status: ${response.status} - ${errorText}`);
     }
 
-    const webhookData = await response.json();
-    console.log('Webhook response:', webhookData);
+    const responseData = await response.json();
+    console.log("✅ N8N webhook success:", responseData);
 
     return new Response(
-      JSON.stringify(webhookData),
+      JSON.stringify(responseData),
       { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json' 
-        } 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
+
   } catch (error) {
-    console.error('Error calling webhook:', error);
+    console.error("💥 Error in call-n8n-webhook:", error);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'Webhook call failed', 
+        details: error.message 
+      }),
       { 
-        status: 500,
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json' 
-        } 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
-})
+});

@@ -6,8 +6,9 @@ import { useToast } from "@/hooks/use-toast";
 interface WebhookResponse {
   video_file: string;
   youtube_link: string;
-  instagram_link: string;
+  instagram_link: string;  
   tiktok_link: string;
+  preview_video_url?: string;
 }
 
 export const useVideoIdeaForm = () => {
@@ -105,7 +106,7 @@ export const useVideoIdeaForm = () => {
         voiceFileUrl = await handleVoiceFileUpload(voiceFile);
       }
 
-      // Create video idea record
+      // Create video idea record with new approval workflow fields
       const { data: videoIdea, error } = await supabase
         .from('video_ideas')
         .insert({
@@ -114,16 +115,19 @@ export const useVideoIdeaForm = () => {
           use_ai_voice: useAiVoice,
           voice_file_url: voiceFileUrl,
           selected_platforms: selectedPlatforms,
-          status: 'pending'
+          status: 'processing',
+          approval_status: 'pending'
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      // Call the webhook through our edge function
+      // Call the webhook for preview generation (phase 1)
       const { data: webhookData, error: webhookError } = await supabase.functions.invoke('call-n8n-webhook', {
         body: {
+          phase: 'preview',
+          video_idea_id: videoIdea.id,
           video_idea: ideaText,
           selected_platforms: selectedPlatforms,
           use_ai_voice: useAiVoice
@@ -136,23 +140,27 @@ export const useVideoIdeaForm = () => {
       }
 
       console.log("Webhook response:", webhookData);
-      setWebhookResponse(webhookData);
 
-      // Update the video idea with the response data
-      const { error: updateError } = await supabase
-        .from('video_ideas')
-        .update({
-          status: 'completed',
-          video_url: webhookData.video_file || null,
-          youtube_link: webhookData.youtube_link || null,
-          instagram_link: webhookData.instagram_link || null,
-          tiktok_link: webhookData.tiktok_link || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', videoIdea.id);
+      // For preview phase, we don't get final links yet
+      if (webhookData.preview_video_url) {
+        // Update the video idea with preview URL
+        const { error: updateError } = await supabase
+          .from('video_ideas')
+          .update({
+            approval_status: 'preview_ready',
+            preview_video_url: webhookData.preview_video_url,
+            status: 'preview_ready'
+          })
+          .eq('id', videoIdea.id);
 
-      if (updateError) {
-        console.error("Error updating video idea:", updateError);
+        if (updateError) {
+          console.error("Error updating video idea:", updateError);
+        }
+
+        toast({
+          title: "Preview Generated!",
+          description: "Your video preview is ready for review. Check the video list below.",
+        });
       }
 
       // Deduct credit
@@ -172,11 +180,6 @@ export const useVideoIdeaForm = () => {
           transaction_type: 'usage',
           description: 'Video generation'
         });
-
-      toast({
-        title: "Success!",
-        description: "Your video has been generated successfully!",
-      });
 
       // Reset form
       setIdeaText("");

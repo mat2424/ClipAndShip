@@ -101,11 +101,15 @@ export type Database = {
       }
       video_ideas: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
           created_at: string
           id: string
           idea_text: string
           instagram_link: string | null
           n8n_webhook_id: string | null
+          preview_video_url: string | null
+          rejected_reason: string | null
           selected_platforms: string[]
           status: string
           tiktok_link: string | null
@@ -117,11 +121,15 @@ export type Database = {
           youtube_link: string | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
           created_at?: string
           id?: string
           idea_text: string
           instagram_link?: string | null
           n8n_webhook_id?: string | null
+          preview_video_url?: string | null
+          rejected_reason?: string | null
           selected_platforms?: string[]
           status?: string
           tiktok_link?: string | null
@@ -133,11 +141,15 @@ export type Database = {
           youtube_link?: string | null
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
           created_at?: string
           id?: string
           idea_text?: string
           instagram_link?: string | null
           n8n_webhook_id?: string | null
+          preview_video_url?: string | null
+          rejected_reason?: string | null
           selected_platforms?: string[]
           status?: string
           tiktok_link?: string | null
