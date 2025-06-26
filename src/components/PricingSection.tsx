@@ -132,7 +132,7 @@ export const PricingSection = () => {
   };
   return <div className="space-y-6">
       {/* Credits Section */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="rounded-lg shadow p-6 bg-[#3400ff]">
         <h2 className="text-xl font-semibold mb-4">Buy Credits</h2>
         <div className="space-y-4">
           {PRICING_TIERS.map(tier => <div key={tier.credits} className={`border rounded-lg p-4 ${tier.popular ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
