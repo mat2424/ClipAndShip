@@ -13,7 +13,7 @@ export const CreditBalance = () => {
 
     // Subscribe to profile changes for real-time updates
     const channel = supabase
-      .channel('profile-changes')
+      .channel('profile-changes-unique')
       .on(
         'postgres_changes',
         {
@@ -28,12 +28,8 @@ export const CreditBalance = () => {
       )
       .subscribe();
 
-    // Also refresh credits every 30 seconds to ensure they're up to date
-    const interval = setInterval(fetchCreditsAndTier, 30000);
-
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
     };
   }, []);
 
