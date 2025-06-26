@@ -9,11 +9,50 @@ export const CreditBalance = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    let channel: any = null;
+
+    const fetchCreditsAndTier = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          if (mounted) {
+            setCredits(0);
+            setSubscriptionTier('free');
+            setLoading(false);
+          }
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('credits, subscription_tier')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching credits and tier:', error);
+        } else if (mounted) {
+          setCredits(data?.credits || 0);
+          setSubscriptionTier(data?.subscription_tier || 'free');
+        }
+      } catch (error) {
+        console.error('Error fetching credits and tier:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchCreditsAndTier();
 
+    // Create a unique channel name to avoid conflicts
+    const channelName = `profile-changes-${Date.now()}-${Math.random()}`;
+    
     // Subscribe to profile changes for real-time updates
-    const channel = supabase
-      .channel('profile-changes-unique')
+    channel = supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -23,44 +62,20 @@ export const CreditBalance = () => {
         },
         (payload) => {
           console.log('Profile updated:', payload);
-          fetchCreditsAndTier();
+          if (mounted) {
+            fetchCreditsAndTier();
+          }
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      mounted = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
-
-  const fetchCreditsAndTier = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setCredits(0);
-        setSubscriptionTier('free');
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('credits, subscription_tier')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching credits and tier:', error);
-      } else {
-        setCredits(data?.credits || 0);
-        setSubscriptionTier(data?.subscription_tier || 'free');
-      }
-    } catch (error) {
-      console.error('Error fetching credits and tier:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return <div className="animate-pulse bg-gray-200 h-8 w-20 rounded"></div>;
