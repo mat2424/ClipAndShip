@@ -55,7 +55,7 @@ const ConnectAccounts = () => {
           </div>
           <div className="flex items-center space-x-4">
             <Link
-              to="/"
+              to="/app"
               className="flex items-center space-x-2 bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors border border-pink-500"
             >
               <ArrowLeft className="w-4 h-4" />
