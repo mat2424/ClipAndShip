@@ -135,8 +135,8 @@ export const useVideoIdeaForm = () => {
       });
 
       if (webhookError) {
-        console.error("Webhook error:", webhookError);
-        throw new Error(webhookError.message || "Failed to call webhook");
+        // Don't log webhook errors, just throw a generic error
+        throw new Error("Failed to start video generation");
       }
 
       console.log("Webhook response:", webhookData);
@@ -188,7 +188,7 @@ export const useVideoIdeaForm = () => {
       setUseCustomVoice(false);
 
     } catch (error: any) {
-      console.error("Error generating video:", error);
+      // Only show user-friendly error messages
       toast({
         title: "Error",
         description: error.message || "Failed to generate video. Please try again.",
