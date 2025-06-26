@@ -36,37 +36,30 @@ export const ConnectedAccountCard = ({
 
   return (
     <div className="bg-gray-800/50 border border-pink-500/30 rounded-lg p-4">
-      {/* Mobile Layout - Stacked */}
+      {/* Mobile Layout */}
       <div className="block sm:hidden">
-        <div className="space-y-3">
-          {/* Platform and Account Info */}
-          <div className="text-center">
-            <h4 className="font-semibold text-white text-base mb-2">{platformName}</h4>
-            <div className="text-sm text-pink-200 space-y-1">
-              <div>{userEmail}</div>
-              <div className="flex items-center justify-center space-x-2">
-                <Calendar className="w-4 h-4" />
-                <span>Connected {formatDate(account.created_at)}</span>
-              </div>
+        <div className="mb-3">
+          <h4 className="font-semibold text-white text-sm">{platformName}</h4>
+          <div className="text-xs text-pink-200 space-y-1">
+            <div>{userEmail}</div>
+            <div className="flex items-center space-x-1">
+              <Calendar className="w-3 h-3" />
+              <span>Connected {formatDate(account.created_at)}</span>
             </div>
           </div>
-          
-          {/* Disconnect Button - Below connection info on mobile */}
-          <div className="pt-2 border-t border-pink-500/20">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onDisconnect}
-              className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 border-red-500/50 hover:border-red-400"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Disconnect Account
-            </Button>
-          </div>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onDisconnect}
+          className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20 border-red-500/50 hover:border-red-400 text-xs"
+        >
+          <Trash2 className="w-3 h-3 mr-1" />
+          Disconnect
+        </Button>
       </div>
 
-      {/* Desktop Layout - Side by side */}
+      {/* Desktop Layout */}
       <div className="hidden sm:flex sm:items-center sm:justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex-1">
