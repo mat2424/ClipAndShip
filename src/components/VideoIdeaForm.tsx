@@ -18,8 +18,8 @@ export const VideoIdeaForm = () => {
     loading,
     handleSubmit
   } = useVideoIdeaForm();
-  return <div className="rounded-lg shadow p-6 bg-[#6625ff]">
-      <h2 className="text-xl font-semibold mb-4">Create New Video</h2>
+  return <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-semibold mb-4 bg-[#621fff]">Create New Video</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label htmlFor="idea">Video Idea *</Label>

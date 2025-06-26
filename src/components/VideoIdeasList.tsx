@@ -133,15 +133,15 @@ export const VideoIdeasList = () => {
   }
   return <>
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b bg-[#6625ff]">
-          <h2 className="text-xl font-semibold">Your Videos</h2>
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold text-zinc-950">Your Videos</h2>
         </div>
         <div className="divide-y">
           {videoIdeas.length === 0 ? <div className="p-6 text-center text-gray-500">
               No videos yet. Create your first video above!
             </div> : videoIdeas.map(idea => {
           const statusDisplay = getStatusDisplay(idea);
-          return <div key={idea.id} className="p-6 bg-[#6625ff]">
+          return <div key={idea.id} className="p-6">
                   <div className="flex justify-between items-start mb-2">
                     <p className="text-sm text-gray-600 flex-1 mr-4">
                       {idea.idea_text}
@@ -169,7 +169,7 @@ export const VideoIdeasList = () => {
                   {/* Rejection Reason */}
                   {idea.approval_status === 'rejected' && idea.rejected_reason && <div className="mb-2">
                       <p className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                        <strong>Rejection reason:</strong> {idea.rejected_reason}
+                        <strong className="text-xs text-black ">Rejection reason:</strong> {idea.rejected_reason}
                       </p>
                     </div>}
 

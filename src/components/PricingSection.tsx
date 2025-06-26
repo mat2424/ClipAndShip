@@ -132,16 +132,16 @@ export const PricingSection = () => {
   };
   return <div className="space-y-6">
       {/* Credits Section */}
-      <div className="rounded-lg shadow p-6 bg-[#6625ff]">
+      <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Buy Credits</h2>
         <div className="space-y-4">
-          {PRICING_TIERS.map(tier => <div key={tier.credits} className={`border rounded-lg p-4 ${tier.popular ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+          {PRICING_TIERS.map(tier => <div key={tier.credits} className="">
               {tier.popular && <div className="text-xs font-medium text-blue-600 mb-2">MOST POPULAR</div>}
               <div className="flex justify-between items-center">
                 <div>
                   <div className="font-semibold">{tier.credits} Credits</div>
-                  <div className="text-sm text-gray-600">${tier.price}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-black bg-[#6625ff]">${tier.price}</div>
+                  <div className="text-xs text-black ">
                     ${(tier.price / tier.credits).toFixed(2)} per credit
                   </div>
                 </div>
@@ -154,7 +154,7 @@ export const PricingSection = () => {
       </div>
 
       {/* Subscription Tiers Section */}
-      <div className="rounded-lg shadow p-6 bg-[#6625ff]">
+      <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold mb-4">Upgrade Your Account</h2>
         <div className="space-y-4">
           {SUBSCRIPTION_TIERS.map(tier => {
@@ -172,7 +172,7 @@ export const PricingSection = () => {
                 <ul className="text-sm text-gray-600 space-y-1 mb-3">
                   {tier.features.map((feature, index) => <li key={index} className="flex items-center space-x-2">
                       <span className="text-green-500">✓</span>
-                      <span>{feature}</span>
+                      <span className="text-xs text-black ">{feature}</span>
                     </li>)}
                 </ul>
                 <Button onClick={() => handleSubscriptionUpgrade(tier.name, tier.price)} disabled={subLoading === tier.name} size="sm" variant="outline" className="w-full text-black">
