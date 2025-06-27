@@ -154,7 +154,7 @@ export const useVideoSubmissionWithTokens = () => {
       }
 
       // Create video idea record
-      const { data: videoIdea: videoIdeaRecord, error: dbError } = await supabase
+      const { data: videoIdeaRecord, error: dbError } = await supabase
         .from('video_ideas')
         .insert({
           user_id: user.id,
