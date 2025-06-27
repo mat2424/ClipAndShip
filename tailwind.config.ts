@@ -63,12 +63,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom Cool Tech colors (lighter versions)
-				'cool-charcoal': '#2a2e45',
-				'cool-navy': '#363b56',
-				'cool-sky': '#6bc5f4',
-				'cool-aqua': '#6be5d0',
-				'cool-aqua-hover': '#5ad4c2',
+				// Updated theme colors - Turquoise and Grey
+				'cool-charcoal': '#1e1e2f',
+				'cool-navy': '#2a2e45',
+				'cool-turquoise': '#48e0c7',
+				'cool-turquoise-hover': '#3dd4bd',
+				'cool-aqua': '#48e0c7',
+				'cool-aqua-hover': '#3dd4bd',
 				'cool-rose': '#ff8ba8',
 				'cool-gray': '#a1a6b5',
 				'cool-light': '#d4d7dc',

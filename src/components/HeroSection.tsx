@@ -12,7 +12,7 @@ export const HeroSection = () => {
     <section className="relative py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto text-center">
         <div className="mb-8">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-cool-turquoise to-cool-aqua bg-clip-text text-transparent">
             Create & Publish Videos with AI
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto mb-8">
@@ -21,14 +21,14 @@ export const HeroSection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/app" className="inline-block">
-              <Button className="bg-pink-600 hover:bg-pink-700 text-white px-8 py-4 text-lg font-medium rounded-lg transition-colors">
+              <Button className="bg-cool-turquoise hover:bg-cool-turquoise-hover text-cool-charcoal px-8 py-4 text-lg font-medium rounded-lg transition-colors">
                 Start Creating Videos
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Button 
               variant="outline" 
-              className="border-pink-500 text-pink-400 hover:bg-pink-500/10 px-8 py-4 text-lg font-medium rounded-lg"
+              className="border-cool-turquoise text-cool-turquoise hover:bg-cool-turquoise/10 px-8 py-4 text-lg font-medium rounded-lg"
               onClick={handleWatchDemo}
             >
               <Play className="w-5 h-5 mr-2" />

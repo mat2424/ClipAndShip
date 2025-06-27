@@ -41,8 +41,8 @@ const ConnectAccounts = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-cool-charcoal">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cool-turquoise"></div>
       </div>
     );
   }
@@ -52,8 +52,8 @@ const ConnectAccounts = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <header className="bg-gray-900 shadow-lg border-b border-pink-500">
+    <div className="min-h-screen bg-cool-charcoal">
+      <header className="bg-cool-navy shadow-lg border-b border-cool-turquoise">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex justify-between items-center">
             {/* Logo and Title - Clickable to return to landing */}
@@ -71,7 +71,7 @@ const ConnectAccounts = () => {
               <CreditBalance />
               <Link
                 to="/app"
-                className="flex items-center space-x-2 bg-gray-700 text-white px-3 py-2 rounded-md hover:bg-gray-600 transition-colors border border-pink-500 text-sm"
+                className="flex items-center space-x-2 bg-cool-gray text-white px-3 py-2 rounded-md hover:bg-cool-gray/80 transition-colors border border-cool-turquoise text-sm"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Main Page</span>
@@ -88,22 +88,22 @@ const ConnectAccounts = () => {
             <div className="sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="border-pink-500 text-white hover:bg-gray-800">
+                  <Button variant="outline" size="sm" className="border-cool-turquoise text-white hover:bg-cool-gray bg-cool-navy">
                     <Menu className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-gray-800 border-pink-500 text-white">
-                  <DropdownMenuLabel className="text-pink-400">Account Settings</DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-pink-500/30" />
+                <DropdownMenuContent align="end" className="w-56 bg-cool-navy border-cool-turquoise text-white">
+                  <DropdownMenuLabel className="text-cool-turquoise">Account Settings</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-cool-turquoise/30" />
                   
-                  <DropdownMenuItem asChild className="hover:bg-gray-700">
+                  <DropdownMenuItem asChild className="hover:bg-cool-gray">
                     <Link to="/app" className="flex items-center space-x-2 w-full">
                       <UserIcon className="w-4 h-4" />
                       <span>Main Page</span>
                     </Link>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="hover:bg-gray-700 cursor-default">
+                  <DropdownMenuItem className="hover:bg-cool-gray cursor-default">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-2">
                         <CreditCard className="w-4 h-4" />
@@ -113,14 +113,14 @@ const ConnectAccounts = () => {
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="hover:bg-gray-700 cursor-default">
+                  <DropdownMenuItem className="hover:bg-cool-gray cursor-default">
                     <div className="flex items-center space-x-2">
                       <Settings className="w-4 h-4" />
                       <span>Free Plan</span>
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuSeparator className="bg-pink-500/30" />
+                  <DropdownMenuSeparator className="bg-cool-turquoise/30" />
                   
                   <DropdownMenuItem 
                     onClick={() => supabase.auth.signOut()}
@@ -137,10 +137,10 @@ const ConnectAccounts = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="bg-[#621fff] rounded-lg shadow-lg p-4 sm:p-6">
+        <div className="bg-cool-turquoise rounded-lg shadow-lg p-4 sm:p-6">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">Connect Your Social Media Accounts</h2>
-            <p className="text-pink-200 text-sm sm:text-base px-2">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-cool-charcoal mb-2">Connect Your Social Media Accounts</h2>
+            <p className="text-cool-charcoal/80 text-sm sm:text-base px-2">
               Link your social media accounts to automatically publish your AI-generated videos across multiple platforms.
             </p>
           </div>

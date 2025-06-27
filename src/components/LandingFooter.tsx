@@ -1,7 +1,7 @@
 
 export const LandingFooter = () => {
   return (
-    <footer className="bg-gray-900 border-t border-pink-500 py-8">
+    <footer className="bg-cool-navy border-t border-cool-turquoise py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="flex items-center justify-center space-x-3 mb-4">
           <img 

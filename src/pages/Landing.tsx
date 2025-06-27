@@ -22,14 +22,14 @@ const Landing = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-cool-charcoal">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cool-turquoise"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-cool-charcoal text-white">
       <LandingHeader user={user} />
       <HeroSection />
       <FeaturesSection />
