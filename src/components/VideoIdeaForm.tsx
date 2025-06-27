@@ -57,17 +57,17 @@ export const VideoIdeaForm = () => {
   const connectedPlatforms = connectedAccounts.map(token => token.platform);
 
   return (
-    <div className="bg-[#621fff] rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4 text-white">Create New Video</h2>
+    <div className="bg-cool-navy rounded-xl shadow-lg p-6 border border-cool-sky/20">
+      <h2 className="text-xl font-semibold mb-4 text-cool-white">Create New Video</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="idea" className="text-white">Video Idea *</Label>
+          <Label htmlFor="idea" className="text-cool-light">Video Idea *</Label>
           <Textarea
             id="idea"
             value={ideaText}
             onChange={(e) => setIdeaText(e.target.value)}
             placeholder="Describe your video idea..."
-            className="min-h-[100px]"
+            className="min-h-[100px] bg-cool-charcoal border-cool-gray/30 text-cool-white placeholder:text-cool-gray focus:border-cool-sky"
             required
           />
         </div>
@@ -88,17 +88,17 @@ export const VideoIdeaForm = () => {
         {/* Connection Status Display */}
         {selectedPlatforms.length > 0 && (
           <div className="space-y-2">
-            <Label className="text-white">Platform Connection Status</Label>
+            <Label className="text-cool-light">Platform Connection Status</Label>
             <div className="space-y-1">
               {selectedPlatforms.map(platform => {
                 const isConnected = connectedPlatforms.includes(platform.toLowerCase() as any);
                 return (
                   <div key={platform} className="flex items-center justify-between text-sm">
-                    <span className="text-white capitalize">{platform}</span>
+                    <span className="text-cool-light capitalize">{platform}</span>
                     <span className={`px-2 py-1 rounded text-xs ${
                       isConnected 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-cool-aqua/20 text-cool-aqua border border-cool-aqua/30' 
+                        : 'bg-cool-rose/20 text-cool-rose border border-cool-rose/30'
                     }`}>
                       {isConnected ? 'Connected' : 'Not Connected'}
                     </span>
@@ -111,8 +111,8 @@ export const VideoIdeaForm = () => {
 
         {/* Warning for missing connections */}
         {!validation.valid && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">
+          <div className="p-3 bg-cool-rose/10 border border-cool-rose/30 rounded-lg">
+            <p className="text-sm text-cool-rose">
               <strong>Missing Connections:</strong> Please connect your {validation.missingPlatforms.join(', ')} account(s) before submitting.
             </p>
           </div>
@@ -121,15 +121,15 @@ export const VideoIdeaForm = () => {
         <Button 
           type="submit" 
           disabled={submissionLoading || !validation.valid} 
-          className="w-full"
+          className="w-full bg-cool-aqua hover:bg-cool-aqua-hover text-cool-charcoal font-medium"
         >
           {submissionLoading ? "Submitting..." : "Generate Video with Social Integration (1 Credit)"}
         </Button>
       </form>
 
       {/* Updated info about the workflow */}
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
+      <div className="mt-4 p-3 bg-cool-sky/10 border border-cool-sky/30 rounded-lg">
+        <p className="text-sm text-cool-sky">
           <strong>Enhanced Workflow:</strong> We'll generate a preview video for your review. 
           After approval, it will be automatically published to your connected social media accounts.
         </p>
