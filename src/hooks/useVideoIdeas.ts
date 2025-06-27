@@ -1,0 +1,60 @@
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface VideoIdea {
+  id: string;
+  idea_text: string;
+  selected_platforms: string[];
+  status: string;
+  approval_status: string;
+  video_url: string | null;
+  preview_video_url: string | null;
+  youtube_link: string | null;
+  instagram_link: string | null;
+  tiktok_link: string | null;
+  rejected_reason: string | null;
+  created_at: string;
+}
+
+export const useVideoIdeas = () => {
+  const [videoIdeas, setVideoIdeas] = useState<VideoIdea[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchVideoIdeas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('video_ideas')
+        .select('id, idea_text, selected_platforms, status, approval_status, video_url, preview_video_url, youtube_link, instagram_link, tiktok_link, rejected_reason, created_at')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setVideoIdeas(data || []);
+    } catch (error) {
+      console.error('Error fetching video ideas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVideoIdeas();
+
+    // Subscribe to video ideas changes for real-time updates
+    const channel = supabase.channel('video-ideas-changes').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'video_ideas'
+    }, () => fetchVideoIdeas()).subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return {
+    videoIdeas,
+    loading,
+    refetchVideoIdeas: fetchVideoIdeas
+  };
+};
