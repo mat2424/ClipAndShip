@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PlatformSelector } from "./PlatformSelector";
 import { VoiceSettings } from "./VoiceSettings";
 import { useVideoIdeaForm } from "@/hooks/useVideoIdeaForm";
+import { useSocialTokens } from "@/hooks/useSocialTokens";
 import { useVideoSubmissionWithTokens } from "@/hooks/useVideoSubmissionWithTokens";
 
 export const VideoIdeaForm = () => {
@@ -20,8 +21,10 @@ export const VideoIdeaForm = () => {
     userTier,
   } = useVideoIdeaForm();
 
+  // Use the same hook as the connect accounts page for consistency
+  const { connectedAccounts } = useSocialTokens();
+
   const {
-    connectedTokens,
     loading: submissionLoading,
     validatePlatformConnections,
     submitVideoWithTokens
@@ -49,9 +52,9 @@ export const VideoIdeaForm = () => {
     }
   };
 
-  // Check platform connections for display
+  // Check platform connections for display using the same data source
   const validation = validatePlatformConnections(selectedPlatforms);
-  const connectedPlatforms = connectedTokens.map(token => token.platform);
+  const connectedPlatforms = connectedAccounts.map(token => token.platform);
 
   return (
     <div className="bg-[#621fff] rounded-lg shadow p-6">
@@ -88,7 +91,7 @@ export const VideoIdeaForm = () => {
             <Label className="text-white">Platform Connection Status</Label>
             <div className="space-y-1">
               {selectedPlatforms.map(platform => {
-                const isConnected = connectedPlatforms.includes(platform as any);
+                const isConnected = connectedPlatforms.includes(platform.toLowerCase() as any);
                 return (
                   <div key={platform} className="flex items-center justify-between text-sm">
                     <span className="text-white capitalize">{platform}</span>

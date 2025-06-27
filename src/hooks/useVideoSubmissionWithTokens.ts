@@ -46,7 +46,7 @@ export const useVideoSubmissionWithTokens = () => {
   const validatePlatformConnections = (selectedPlatforms: string[]): { valid: boolean; missingPlatforms: string[] } => {
     const connectedPlatforms = connectedTokens.map(token => token.platform);
     const missingPlatforms = selectedPlatforms.filter(platform => 
-      !connectedPlatforms.includes(platform as any)
+      !connectedPlatforms.includes(platform.toLowerCase() as any)
     );
 
     return {
@@ -59,16 +59,16 @@ export const useVideoSubmissionWithTokens = () => {
     const socialAccounts: SocialAccountsPayload = {};
 
     selectedPlatforms.forEach(platform => {
-      const token = connectedTokens.find(t => t.platform === platform);
+      const token = connectedTokens.find(t => t.platform === platform.toLowerCase());
       if (token) {
-        socialAccounts[platform] = {
+        socialAccounts[platform.toLowerCase()] = {
           access_token: token.access_token,
           refresh_token: token.refresh_token || undefined,
         };
 
         // Add Instagram user_id if available (required for publishing reels)
-        if (platform === 'instagram' && token.refresh_token) {
-          socialAccounts[platform].user_id = token.refresh_token; // Using refresh_token field to store user_id
+        if (platform.toLowerCase() === 'instagram' && token.refresh_token) {
+          socialAccounts[platform.toLowerCase()].user_id = token.refresh_token; // Using refresh_token field to store user_id
         }
       }
     });
@@ -142,7 +142,7 @@ export const useVideoSubmissionWithTokens = () => {
       const { data: response, error: submitError } = await supabase.functions.invoke('submit-video', {
         body: {
           video_idea: videoIdea,
-          upload_targets: selectedPlatforms,
+          upload_targets: selectedPlatforms.map(p => p.toLowerCase()),
           social_accounts: socialAccounts,
           use_ai_voice: !useCustomVoice,
           voice_file_url: voiceFileUrl
