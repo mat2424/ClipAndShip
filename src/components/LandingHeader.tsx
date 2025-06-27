@@ -8,7 +8,7 @@ interface LandingHeaderProps {
 
 export const LandingHeader = ({ user }: LandingHeaderProps) => {
   return (
-    <header className="bg-gray-900 shadow-lg border-b border-pink-500">
+    <header className="bg-cool-navy shadow-lg border-b border-cool-turquoise/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2 sm:space-x-3">
@@ -23,7 +23,7 @@ export const LandingHeader = ({ user }: LandingHeaderProps) => {
             {user ? (
               <Link
                 to="/app"
-                className="bg-pink-600 text-white px-3 py-2 sm:px-6 sm:py-2 rounded-md hover:bg-pink-700 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
+                className="bg-cool-turquoise text-cool-charcoal px-3 py-2 sm:px-6 sm:py-2 rounded-md hover:bg-cool-turquoise-hover transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
               >
                 <span className="hidden sm:inline">Go to Dashboard</span>
                 <span className="sm:hidden">Dashboard</span>
@@ -31,7 +31,7 @@ export const LandingHeader = ({ user }: LandingHeaderProps) => {
             ) : (
               <Link
                 to="/app"
-                className="bg-pink-600 text-white px-3 py-2 sm:px-6 sm:py-2 rounded-md hover:bg-pink-700 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
+                className="bg-cool-turquoise text-cool-charcoal px-3 py-2 sm:px-6 sm:py-2 rounded-md hover:bg-cool-turquoise-hover transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
               >
                 <span className="hidden sm:inline">Get Started</span>
                 <span className="sm:hidden">Start</span>
