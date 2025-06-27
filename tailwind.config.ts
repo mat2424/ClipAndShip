@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -62,16 +61,7 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				},
-				// Cool Tech palette additions
-				'cool-charcoal': '#1e1e2f',
-				'cool-navy': '#2a2e45',
-				'cool-sky': '#4eb8f2',
-				'cool-aqua': '#48e0c7',
-				'cool-aqua-hover': '#3bcab3',
-				'cool-rose': '#ff6f91',
-				'cool-gray': '#8a8fa3',
-				'cool-light': '#c9cdd4'
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

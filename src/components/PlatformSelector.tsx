@@ -63,7 +63,7 @@ export const PlatformSelector = ({
 
   return (
     <div>
-      <Label className="text-foreground">Select Platforms *</Label>
+      <Label>Select Platforms *</Label>
       <div className="grid grid-cols-2 gap-2 mt-2">
         {PLATFORMS.map(platform => {
           const isLocked = !canSelectPlatform(platform);
@@ -79,13 +79,13 @@ export const PlatformSelector = ({
               <div className="flex flex-col min-w-0 flex-1">
                 <Label 
                   htmlFor={platform.name} 
-                  className={`flex items-center space-x-1 min-w-0 ${isLocked ? 'text-muted-foreground' : 'text-foreground'}`}
+                  className={`flex items-center space-x-1 min-w-0 ${isLocked ? 'text-gray-400' : ''}`}
                 >
-                  <span className="text-lg truncate">{platform.name}</span>
+                  <span className="text-white text-lg truncate">{platform.name}</span>
                   {isLocked && <Lock className="h-3 w-3 flex-shrink-0" />}
                 </Label>
                 {isLocked && (
-                  <span className="text-xs text-destructive font-medium self-start">Premium</span>
+                  <span className="text-xs text-orange-600 font-medium self-start">Premium</span>
                 )}
               </div>
             </div>
@@ -93,8 +93,8 @@ export const PlatformSelector = ({
         })}
       </div>
       {userTier === 'free' && (
-        <div className="mt-2 p-3 bg-primary/10 border border-primary/30 rounded-md">
-          <p className="text-sm text-primary">
+        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-sm text-blue-800">
             <strong>Upgrade to Premium</strong> to unlock Facebook, X, and LinkedIn platforms for wider reach!
           </p>
         </div>
