@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { handleCustomOAuthCallback } from "@/utils/oauthUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -11,22 +11,23 @@ const OAuthCallback = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [processing, setProcessing] = useState(true);
-  const [hasProcessed, setHasProcessed] = useState(false);
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
     const processCallback = async () => {
-      if (hasProcessed) {
+      // Prevent multiple processing attempts
+      if (hasProcessedRef.current) {
         console.log('⚠️ OAuth callback already processed, skipping');
         return;
       }
+
+      hasProcessedRef.current = true;
 
       try {
         console.log('🔄 OAuth callback started');
         console.log('📍 Current URL:', window.location.href);
         console.log('🔗 Hash params:', window.location.hash);
         console.log('🔗 Search params:', window.location.search);
-        
-        setHasProcessed(true);
         
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const urlParams = new URLSearchParams(window.location.search);
@@ -202,28 +203,31 @@ const OAuthCallback = () => {
       }
     };
 
+    // Use a small delay to ensure the component is fully mounted
     const timer = setTimeout(() => {
       processCallback();
     }, 100);
 
-    return () => clearTimeout(timer);
-  }, [navigate, toast, hasProcessed]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [navigate, toast]);
 
   if (processing) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Processing Connection
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Please wait while we process your connection...
           </p>
           
           <Link
             to="/connect-accounts"
-            className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+            className="inline-flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Connect Accounts</span>
@@ -234,18 +238,18 @@ const OAuthCallback = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
           Redirecting...
         </h2>
-        <p className="text-gray-600 mb-6">
+        <p className="text-muted-foreground mb-6">
           Taking you back to your accounts page.
         </p>
         
         <Link
           to="/connect-accounts"
-          className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors"
+          className="inline-flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Connect Accounts</span>
