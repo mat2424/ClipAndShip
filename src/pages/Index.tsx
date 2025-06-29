@@ -55,7 +55,7 @@ const Index = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Loading...</div>;
   }
 
   if (!user) {
@@ -63,13 +63,13 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-cool-charcoal">VideoSpark</h1>
+              <h1 className="text-xl font-bold text-foreground">VideoSpark</h1>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -89,13 +89,13 @@ const Index = () => {
               <CreditBalance />
               
               <div className="flex items-center space-x-2">
-                <User className="w-4 h-4 text-gray-600" />
-                <span className="text-sm text-gray-600">{user.email}</span>
+                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{user.email}</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleSignOut}
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <LogOut className="w-4 h-4" />
                 </Button>
