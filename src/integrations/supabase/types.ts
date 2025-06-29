@@ -39,6 +39,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_videos: {
+        Row: {
+          approved_at: string | null
+          caption: string | null
+          created_at: string | null
+          execution_id: string | null
+          id: string
+          idea: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          status: string | null
+          titles_descriptions: Json | null
+          upload_targets: string[] | null
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          caption?: string | null
+          created_at?: string | null
+          execution_id?: string | null
+          id?: string
+          idea: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          status?: string | null
+          titles_descriptions?: Json | null
+          upload_targets?: string[] | null
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          caption?: string | null
+          created_at?: string | null
+          execution_id?: string | null
+          id?: string
+          idea?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          status?: string | null
+          titles_descriptions?: Json | null
+          upload_targets?: string[] | null
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

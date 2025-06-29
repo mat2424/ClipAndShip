@@ -15,7 +15,6 @@ const OAuthCallback = () => {
 
   useEffect(() => {
     const processCallback = async () => {
-      // Prevent processing multiple times
       if (hasProcessed) {
         console.log('⚠️ OAuth callback already processed, skipping');
         return;
@@ -29,7 +28,6 @@ const OAuthCallback = () => {
         
         setHasProcessed(true);
         
-        // Handle Supabase OAuth callback (access_token in hash)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const urlParams = new URLSearchParams(window.location.search);
         
@@ -62,7 +60,7 @@ const OAuthCallback = () => {
           return;
         }
         
-        // Check for Supabase OAuth tokens in hash (for OAuth providers like Google)
+        // Check for Supabase OAuth tokens in hash (for OAuth providers like Google/YouTube)
         const accessToken = hashParams.get('access_token');
         const providerToken = hashParams.get('provider_token');
         const refreshToken = hashParams.get('refresh_token');
@@ -103,14 +101,30 @@ const OAuthCallback = () => {
             console.log('💾 Saving token with expiration:', expirationDate);
             console.log('🔑 Provider token length:', providerToken.length);
             
-            // Store the YouTube connection in our database
+            // Test the token immediately to ensure it works
+            const testResponse = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+              headers: {
+                'Authorization': `Bearer ${providerToken}`,
+                'Accept': 'application/json',
+              },
+            });
+            
+            if (!testResponse.ok) {
+              console.error('❌ YouTube API test failed:', testResponse.status, testResponse.statusText);
+              throw new Error('YouTube token validation failed. The token may not have proper permissions.');
+            }
+            
+            const channelData = await testResponse.json();
+            console.log('✅ YouTube API test successful:', channelData);
+            
+            // Store the YouTube connection in our database with verified token
             const { data, error: dbError } = await supabase
               .from('social_tokens')
               .upsert(
                 {
                   user_id: user.id,
                   platform: 'youtube',
-                  access_token: providerToken, // Use provider token for YouTube API calls
+                  access_token: providerToken, // Store the provider token for YouTube API calls
                   refresh_token: refreshToken,
                   expires_at: expirationDate,
                 },
@@ -130,7 +144,7 @@ const OAuthCallback = () => {
             
             toast({
               title: "Success!",
-              description: "Successfully connected your YouTube account.",
+              description: "Successfully connected your YouTube account with upload permissions.",
             });
           } else {
             console.error('❌ No authenticated user found');
@@ -188,7 +202,6 @@ const OAuthCallback = () => {
       }
     };
 
-    // Small delay to ensure component is mounted
     const timer = setTimeout(() => {
       processCallback();
     }, 100);
