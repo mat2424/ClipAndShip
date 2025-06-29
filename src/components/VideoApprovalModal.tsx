@@ -52,27 +52,20 @@ export const VideoApprovalModal = ({
 
       if (updateError) throw updateError;
 
-      // Call n8n webhook to trigger upload process
-      const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
-      if (webhookUrl) {
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            phase: 'upload',
-            execution_id: video.execution_id,
-            video_url: video.video_url,
-            upload_targets: video.upload_targets,
-            titles_descriptions: video.titles_descriptions,
-            approved: true
-          }),
-        });
-
-        if (!response.ok) {
-          console.warn('N8N webhook call failed, but approval was saved');
+      // Call the handle-video-webhook edge function to trigger upload
+      const { error: webhookError } = await supabase.functions.invoke('handle-video-webhook', {
+        body: {
+          phase: 'upload',
+          execution_id: video.execution_id,
+          video_url: video.video_url,
+          upload_targets: video.upload_targets,
+          titles_descriptions: video.titles_descriptions,
+          approved: true
         }
+      });
+
+      if (webhookError) {
+        console.warn('Webhook call failed, but approval was saved:', webhookError);
       }
 
       toast({
@@ -108,21 +101,18 @@ export const VideoApprovalModal = ({
 
       if (error) throw error;
 
-      // Notify n8n about rejection
-      const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
-      if (webhookUrl) {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            phase: 'upload',
-            execution_id: video.execution_id,
-            approved: false,
-            rejection_reason: rejectionReason
-          }),
-        });
+      // Notify about rejection via edge function
+      const { error: webhookError } = await supabase.functions.invoke('handle-video-webhook', {
+        body: {
+          phase: 'upload',
+          execution_id: video.execution_id,
+          approved: false,
+          rejection_reason: rejectionReason
+        }
+      });
+
+      if (webhookError) {
+        console.warn('Webhook notification failed:', webhookError);
       }
 
       toast({
