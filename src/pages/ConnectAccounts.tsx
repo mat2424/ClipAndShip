@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { AuthForm } from "@/components/AuthForm";
 import { SocialAccountsManager } from "@/components/SocialAccountsManager";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Settings, Menu, X, CreditCard, User as UserIcon, LogOut } from "lucide-react";
+import { ArrowLeft, Settings, Menu, X, CreditCard, User as UserIcon, LogOut, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,8 +41,8 @@ const ConnectAccounts = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cool-charcoal">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cool-turquoise"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -52,10 +52,10 @@ const ConnectAccounts = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cool-charcoal">
-      <header className="bg-cool-navy shadow-lg border-b border-cool-turquoise">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card shadow-sm border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             {/* Logo and Title - Clickable to return to landing */}
             <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity">
               <img 
@@ -63,22 +63,30 @@ const ConnectAccounts = () => {
                 alt="Clip & Ship AI Logo" 
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain flex-shrink-0"
               />
-              <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-white truncate">Connect Social Accounts</h1>
+              <h1 className="text-base sm:text-xl lg:text-2xl font-bold text-foreground truncate">Clip & Ship</h1>
             </Link>
             
             {/* Desktop Navigation */}
             <div className="hidden sm:flex items-center space-x-4">
+              <Link to="/pending-videos">
+                <Button variant="outline" size="sm" className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Pending Videos</span>
+                </Button>
+              </Link>
+              
               <CreditBalance />
+              
               <Link
                 to="/app"
-                className="flex items-center space-x-2 bg-cool-gray text-white px-3 py-2 rounded-md hover:bg-cool-gray/80 transition-colors border border-cool-turquoise text-sm"
+                className="flex items-center space-x-2 bg-secondary text-secondary-foreground px-3 py-2 rounded-md hover:bg-secondary/80 transition-colors border border-border text-sm"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back to Main Page</span>
               </Link>
               <button
                 onClick={() => supabase.auth.signOut()}
-                className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors text-sm"
+                className="bg-destructive text-destructive-foreground px-3 py-2 rounded-md hover:bg-destructive/90 transition-colors text-sm"
               >
                 Sign Out
               </button>
@@ -88,22 +96,29 @@ const ConnectAccounts = () => {
             <div className="sm:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="border-cool-turquoise text-white hover:bg-cool-gray bg-cool-navy">
+                  <Button variant="outline" size="sm" className="border-border text-foreground hover:bg-accent">
                     <Menu className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-cool-navy border-cool-turquoise text-white">
-                  <DropdownMenuLabel className="text-cool-turquoise">Account Settings</DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-cool-turquoise/30" />
+                <DropdownMenuContent align="end" className="w-56 bg-card border-border text-foreground">
+                  <DropdownMenuLabel className="text-primary">Account Settings</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-border" />
                   
-                  <DropdownMenuItem asChild className="hover:bg-cool-gray">
+                  <DropdownMenuItem asChild className="hover:bg-accent">
+                    <Link to="/pending-videos" className="flex items-center space-x-2 w-full">
+                      <Clock className="w-4 h-4" />
+                      <span>Pending Videos</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem asChild className="hover:bg-accent">
                     <Link to="/app" className="flex items-center space-x-2 w-full">
                       <UserIcon className="w-4 h-4" />
                       <span>Main Page</span>
                     </Link>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="hover:bg-cool-gray cursor-default">
+                  <DropdownMenuItem className="hover:bg-accent cursor-default">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-2">
                         <CreditCard className="w-4 h-4" />
@@ -113,18 +128,18 @@ const ConnectAccounts = () => {
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="hover:bg-cool-gray cursor-default">
+                  <DropdownMenuItem className="hover:bg-accent cursor-default">
                     <div className="flex items-center space-x-2">
                       <Settings className="w-4 h-4" />
                       <span>Free Plan</span>
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuSeparator className="bg-cool-turquoise/30" />
+                  <DropdownMenuSeparator className="bg-border" />
                   
                   <DropdownMenuItem 
                     onClick={() => supabase.auth.signOut()}
-                    className="hover:bg-red-900/50 text-red-400 hover:text-red-300"
+                    className="hover:bg-destructive/10 text-destructive hover:text-destructive"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     <span>Sign Out</span>
@@ -137,10 +152,10 @@ const ConnectAccounts = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="bg-cool-turquoise rounded-lg shadow-lg p-4 sm:p-6">
+        <div className="bg-primary/10 rounded-lg shadow-lg p-4 sm:p-6 border border-border">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-cool-charcoal mb-2">Connect Your Social Media Accounts</h2>
-            <p className="text-cool-charcoal/80 text-sm sm:text-base px-2">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2">Connect Your Social Media Accounts</h2>
+            <p className="text-muted-foreground text-sm sm:text-base px-2">
               Link your social media accounts to automatically publish your AI-generated videos across multiple platforms.
             </p>
           </div>
