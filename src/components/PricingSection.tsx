@@ -23,7 +23,7 @@ const SUBSCRIPTION_TIERS = [
   {
     name: 'Pro',
     price: 59,
-    features: ['All Premium features', 'Custom branding', 'API access', 'Dedicated account manager'],
+    features: ['All Premium features', 'Use custom Voice', 'API access', 'Dedicated account manager'],
     icon: Star,
     color: 'gold'
   },
