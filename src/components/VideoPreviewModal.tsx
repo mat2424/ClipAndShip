@@ -39,7 +39,7 @@ export const VideoPreviewModal = ({
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionForm, setShowRejectionForm] = useState(false);
   const { toast } = useToast();
-  const { socialTokens } = useSocialTokens();
+  const { connectedAccounts } = useSocialTokens();
 
   // Check if this is the new workflow (ready_for_approval) or old workflow (preview_ready)
   const isNewWorkflow = videoIdea.approval_status === 'ready_for_approval';
@@ -54,7 +54,7 @@ export const VideoPreviewModal = ({
         
         // Build social accounts object with OAuth tokens
         videoIdea.selected_platforms.forEach(platform => {
-          const token = socialTokens.find(t => t.platform === platform.toLowerCase());
+          const token = connectedAccounts.find(t => t.platform === platform.toLowerCase());
           if (token) {
             socialAccounts[platform.toLowerCase()] = {
               access_token: token.access_token,
