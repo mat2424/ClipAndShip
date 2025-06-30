@@ -17,6 +17,12 @@ interface VideoIdea {
   tiktok_link: string | null;
   rejected_reason: string | null;
   created_at: string;
+  caption?: string | null;
+  youtube_title?: string | null;
+  tiktok_title?: string | null;
+  instagram_title?: string | null;
+  environment_prompt?: string | null;
+  sound_prompt?: string | null;
 }
 
 export const VideoIdeasList = () => {

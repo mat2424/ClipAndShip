@@ -15,6 +15,12 @@ interface VideoIdea {
   tiktok_link: string | null;
   rejected_reason: string | null;
   created_at: string;
+  caption: string | null;
+  youtube_title: string | null;
+  tiktok_title: string | null;
+  instagram_title: string | null;
+  environment_prompt: string | null;
+  sound_prompt: string | null;
 }
 
 export const useVideoIdeas = () => {
@@ -25,7 +31,26 @@ export const useVideoIdeas = () => {
     try {
       const { data, error } = await supabase
         .from('video_ideas')
-        .select('id, idea_text, selected_platforms, status, approval_status, video_url, preview_video_url, youtube_link, instagram_link, tiktok_link, rejected_reason, created_at')
+        .select(`
+          id, 
+          idea_text, 
+          selected_platforms, 
+          status, 
+          approval_status, 
+          video_url, 
+          preview_video_url, 
+          youtube_link, 
+          instagram_link, 
+          tiktok_link, 
+          rejected_reason, 
+          created_at,
+          caption,
+          youtube_title,
+          tiktok_title,
+          instagram_title,
+          environment_prompt,
+          sound_prompt
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

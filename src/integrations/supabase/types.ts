@@ -151,62 +151,80 @@ export type Database = {
         Row: {
           approval_status: string | null
           approved_at: string | null
+          caption: string | null
           created_at: string
+          environment_prompt: string | null
           id: string
           idea_text: string
           instagram_link: string | null
+          instagram_title: string | null
           n8n_webhook_id: string | null
           preview_video_url: string | null
           rejected_reason: string | null
           selected_platforms: string[]
+          sound_prompt: string | null
           status: string
           tiktok_link: string | null
+          tiktok_title: string | null
           updated_at: string
           use_ai_voice: boolean
           user_id: string
           video_url: string | null
           voice_file_url: string | null
           youtube_link: string | null
+          youtube_title: string | null
         }
         Insert: {
           approval_status?: string | null
           approved_at?: string | null
+          caption?: string | null
           created_at?: string
+          environment_prompt?: string | null
           id?: string
           idea_text: string
           instagram_link?: string | null
+          instagram_title?: string | null
           n8n_webhook_id?: string | null
           preview_video_url?: string | null
           rejected_reason?: string | null
           selected_platforms?: string[]
+          sound_prompt?: string | null
           status?: string
           tiktok_link?: string | null
+          tiktok_title?: string | null
           updated_at?: string
           use_ai_voice?: boolean
           user_id: string
           video_url?: string | null
           voice_file_url?: string | null
           youtube_link?: string | null
+          youtube_title?: string | null
         }
         Update: {
           approval_status?: string | null
           approved_at?: string | null
+          caption?: string | null
           created_at?: string
+          environment_prompt?: string | null
           id?: string
           idea_text?: string
           instagram_link?: string | null
+          instagram_title?: string | null
           n8n_webhook_id?: string | null
           preview_video_url?: string | null
           rejected_reason?: string | null
           selected_platforms?: string[]
+          sound_prompt?: string | null
           status?: string
           tiktok_link?: string | null
+          tiktok_title?: string | null
           updated_at?: string
           use_ai_voice?: boolean
           user_id?: string
           video_url?: string | null
           voice_file_url?: string | null
           youtube_link?: string | null
+          youtube_title?: string | null
         }
         Relationships: []
       }

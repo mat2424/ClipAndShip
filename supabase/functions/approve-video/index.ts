@@ -13,7 +13,13 @@ serve(async (req) => {
   }
 
   try {
-    const { video_idea_id, approved, rejection_reason } = await req.json();
+    const { 
+      video_idea_id, 
+      approved, 
+      rejection_reason, 
+      social_accounts, 
+      selected_platforms 
+    } = await req.json();
 
     if (!video_idea_id || typeof approved !== 'boolean') {
       return new Response(
@@ -46,7 +52,7 @@ serve(async (req) => {
     if (approved) {
       console.log(`Approving video ${video_idea_id} for publishing`);
       
-      // Update status to approved
+      // Update status to approved and publishing
       const { error: updateError } = await supabase
         .from('video_ideas')
         .update({
@@ -61,21 +67,40 @@ serve(async (req) => {
       // Trigger publishing workflow via N8N webhook
       const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
       if (webhookUrl) {
+        const publishPayload: any = {
+          phase: 'publish',
+          video_idea_id: video_idea_id,
+          video_idea: videoIdea.idea_text,
+          selected_platforms: selected_platforms || videoIdea.selected_platforms,
+          video_url: videoIdea.video_url || videoIdea.preview_video_url,
+          approved: true
+        };
+
+        // Add social accounts if provided (new workflow)
+        if (social_accounts) {
+          publishPayload.social_accounts = social_accounts;
+          console.log('Sending social accounts to n8n:', Object.keys(social_accounts));
+        }
+
+        // Add platform-specific titles and metadata
+        if (videoIdea.caption) publishPayload.caption = videoIdea.caption;
+        if (videoIdea.youtube_title) publishPayload.youtube_title = videoIdea.youtube_title;
+        if (videoIdea.tiktok_title) publishPayload.tiktok_title = videoIdea.tiktok_title;
+        if (videoIdea.instagram_title) publishPayload.instagram_title = videoIdea.instagram_title;
+
         const publishResponse = await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            phase: 'publish',
-            video_idea_id: video_idea_id,
-            video_idea: videoIdea.idea_text,
-            selected_platforms: videoIdea.selected_platforms,
-            preview_video_url: videoIdea.preview_video_url
-          }),
+          body: JSON.stringify(publishPayload),
         });
 
         console.log(`Publishing webhook triggered with status: ${publishResponse.status}`);
+        
+        if (!publishResponse.ok) {
+          console.error('Publishing webhook failed:', await publishResponse.text());
+        }
       }
 
       return new Response(

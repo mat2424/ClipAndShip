@@ -1,5 +1,5 @@
 
-import { ExternalLink, Eye } from "lucide-react";
+import { ExternalLink, Eye, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoIdeaStatusBadge } from "./VideoIdeaStatusBadge";
 
@@ -16,6 +16,10 @@ interface VideoIdea {
   tiktok_link: string | null;
   rejected_reason: string | null;
   created_at: string;
+  caption?: string | null;
+  youtube_title?: string | null;
+  tiktok_title?: string | null;
+  instagram_title?: string | null;
 }
 
 interface VideoIdeaItemProps {
@@ -31,6 +35,19 @@ const getPlatformLinks = (idea: VideoIdea) => {
   return links;
 };
 
+const getStatusDisplay = (idea: VideoIdea) => {
+  if (idea.status === 'pending') return 'Generating...';
+  if (idea.approval_status === 'ready_for_approval') return 'Completed';
+  if (idea.approval_status === 'approved' || idea.status === 'publishing') return 'Publishing...';
+  if (idea.approval_status === 'published') return 'Published';
+  if (idea.approval_status === 'rejected') return 'Rejected';
+  return 'Processing...';
+};
+
+const shouldShowPublishButton = (idea: VideoIdea) => {
+  return idea.approval_status === 'ready_for_approval' && idea.video_url;
+};
+
 export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
   return (
     <div className="p-6 bg-cool-turquoise">
@@ -39,9 +56,11 @@ export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
           {idea.idea_text}
         </p>
         <div className="flex gap-2 items-center">
-          <VideoIdeaStatusBadge idea={idea} />
+          <span className="text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+            {getStatusDisplay(idea)}
+          </span>
           
-          {/* Preview Button */}
+          {/* Preview Button for old approval system */}
           {idea.approval_status === 'preview_ready' && idea.preview_video_url && (
             <Button
               size="sm"
@@ -50,6 +69,18 @@ export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
             >
               <Eye className="w-3 h-3 mr-1" />
               Review
+            </Button>
+          )}
+
+          {/* Publish Button for new approval workflow */}
+          {shouldShowPublishButton(idea) && (
+            <Button
+              size="sm"
+              onClick={() => onPreviewClick(idea)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Upload className="w-3 h-3 mr-1" />
+              Publish Video
             </Button>
           )}
         </div>
@@ -62,6 +93,16 @@ export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
           </span>
         ))}
       </div>
+      
+      {/* Caption preview */}
+      {idea.caption && (
+        <div className="mb-2">
+          <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+            <strong>Caption:</strong> {idea.caption.substring(0, 100)}
+            {idea.caption.length > 100 && '...'}
+          </p>
+        </div>
+      )}
       
       {/* Rejection Reason */}
       {idea.approval_status === 'rejected' && idea.rejected_reason && (
