@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface VideoWebhookPayload {
-  phase: 'preview' | 'upload' | 'completed';
+  phase: 'preview' | 'upload' | 'completed' | 'approval';
   execution_id: string;
   user_id?: string;
   video_url?: string;
@@ -17,6 +17,7 @@ interface VideoWebhookPayload {
   titles_descriptions?: any;
   upload_targets?: string[];
   upload_results?: any;
+  video_idea_id?: string;
 }
 
 serve(async (req) => {
@@ -35,7 +36,29 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    if (payload.phase === 'preview') {
+    if (payload.phase === 'approval') {
+      // Video has been generated and is ready for approval
+      console.log('✅ Updating video_ideas for approval phase');
+      
+      const { error } = await supabase
+        .from('video_ideas')
+        .update({
+          status: 'completed',
+          approval_status: 'preview_ready',
+          video_url: payload.video_url,
+          preview_video_url: payload.video_url, // Same URL for both fields
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', payload.video_idea_id);
+
+      if (error) {
+        console.error('❌ Error updating video_ideas:', error);
+        throw error;
+      }
+
+      console.log('✅ Video_ideas updated successfully for approval phase');
+
+    } else if (payload.phase === 'preview') {
       // Video has been generated and is ready for preview/approval
       console.log('📝 Creating pending video for approval');
       
