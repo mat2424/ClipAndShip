@@ -67,10 +67,45 @@ serve(async (req) => {
       throw updateError;
     }
 
+    // Send to your n8n approval workflow
+    const approvalWebhookUrl = 'https://kazzz24.app.n8n.cloud/webhook/video-approval-response';
+    
+    try {
+      const approvalPayload = {
+        phase: 'send_for_approval',
+        video_idea_id: payload.video_idea_id,
+        video_url: payload.final_output,
+        idea: payload.idea,
+        caption: payload.caption,
+        youtube_title: payload.youtube_title,
+        tiktok_title: payload.tiktok_title,
+        instagram_title: payload.instagram_title,
+        environment_prompt: payload.environment_prompt,
+        sound_prompt: payload.sound_prompt
+      };
+
+      const approvalResponse = await fetch(approvalWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(approvalPayload),
+      });
+
+      console.log(`✅ Approval webhook called with status: ${approvalResponse.status}`);
+      
+      if (!approvalResponse.ok) {
+        console.error('⚠️ Approval webhook failed:', await approvalResponse.text());
+      }
+    } catch (webhookError) {
+      console.error('⚠️ Failed to call approval webhook:', webhookError);
+      // Don't throw here, as the video is still ready for approval
+    }
+
     console.log('✅ Video idea updated successfully with ready_for_approval status');
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Video ready for approval' }),
+      JSON.stringify({ success: true, message: 'Video ready for approval and sent to n8n workflow' }),
       { 
         status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

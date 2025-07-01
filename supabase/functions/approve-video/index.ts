@@ -64,49 +64,40 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Trigger publishing workflow via N8N webhook
-      const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
-      if (webhookUrl) {
-        const publishPayload: any = {
-          phase: 'publish',
-          video_idea_id: video_idea_id,
-          video_idea: videoIdea.idea_text,
-          selected_platforms: selected_platforms || videoIdea.selected_platforms,
-          video_url: videoIdea.video_url || videoIdea.preview_video_url,
-          approved: true
-        };
+      // Send approval to your n8n workflow
+      const approvalWebhookUrl = 'https://kazzz24.app.n8n.cloud/webhook/video-approval-response';
+      
+      const approvalPayload = {
+        video_idea_id: video_idea_id,
+        approved: true,
+        video_url: videoIdea.video_url,
+        idea: videoIdea.idea_text,
+        caption: videoIdea.caption,
+        youtube_title: videoIdea.youtube_title,
+        tiktok_title: videoIdea.tiktok_title,
+        instagram_title: videoIdea.instagram_title,
+        selected_platforms: selected_platforms || videoIdea.selected_platforms,
+        social_accounts: social_accounts || {}
+      };
 
-        // Add social accounts if provided (new workflow)
-        if (social_accounts) {
-          publishPayload.social_accounts = social_accounts;
-          console.log('Sending social accounts to n8n:', Object.keys(social_accounts));
-        }
+      const approvalResponse = await fetch(approvalWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(approvalPayload),
+      });
 
-        // Add platform-specific titles and metadata
-        if (videoIdea.caption) publishPayload.caption = videoIdea.caption;
-        if (videoIdea.youtube_title) publishPayload.youtube_title = videoIdea.youtube_title;
-        if (videoIdea.tiktok_title) publishPayload.tiktok_title = videoIdea.tiktok_title;
-        if (videoIdea.instagram_title) publishPayload.instagram_title = videoIdea.instagram_title;
-
-        const publishResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(publishPayload),
-        });
-
-        console.log(`Publishing webhook triggered with status: ${publishResponse.status}`);
-        
-        if (!publishResponse.ok) {
-          console.error('Publishing webhook failed:', await publishResponse.text());
-        }
+      console.log(`Approval webhook triggered with status: ${approvalResponse.status}`);
+      
+      if (!approvalResponse.ok) {
+        console.error('Approval webhook failed:', await approvalResponse.text());
       }
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Video approved and publishing initiated' 
+          message: 'Video approved and sent to n8n workflow for publishing' 
         }),
         { 
           status: 200, 
@@ -129,10 +120,29 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
+      // Send rejection to your n8n workflow
+      const approvalWebhookUrl = 'https://kazzz24.app.n8n.cloud/webhook/video-approval-response';
+      
+      const rejectionPayload = {
+        video_idea_id: video_idea_id,
+        approved: false,
+        rejection_reason: rejection_reason || 'Not approved by user'
+      };
+
+      const rejectionResponse = await fetch(approvalWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(rejectionPayload),
+      });
+
+      console.log(`Rejection webhook triggered with status: ${rejectionResponse.status}`);
+
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Video rejected successfully' 
+          message: 'Video rejected and n8n workflow notified' 
         }),
         { 
           status: 200, 
