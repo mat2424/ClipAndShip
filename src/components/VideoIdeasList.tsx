@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { VideoPreviewModal } from "./VideoPreviewModal";
 import { VideoIdeaItem } from "./VideoIdea/VideoIdeaItem";
@@ -50,6 +49,7 @@ export const VideoIdeasList = () => {
                 key={idea.id}
                 idea={idea}
                 onPreviewClick={setSelectedVideoForPreview}
+                onApprovalChange={refetchVideoIdeas}
               />
             ))
           )}
