@@ -20,6 +20,59 @@ interface VideoWebhookPayload {
   video_idea_id?: string;
 }
 
+// UUID validation regex
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function validateUUID(uuid: string): boolean {
+  return UUID_REGEX.test(uuid);
+}
+
+function validatePayload(payload: VideoWebhookPayload): { valid: boolean; error?: string } {
+  // Common validations
+  if (!payload.execution_id?.trim()) {
+    return { valid: false, error: "execution_id is required" };
+  }
+
+  // Phase-specific validations
+  switch (payload.phase) {
+    case 'preview':
+      if (!payload.user_id?.trim()) {
+        return { valid: false, error: "user_id is required for preview phase" };
+      }
+      if (!validateUUID(payload.user_id)) {
+        return { valid: false, error: "user_id must be a valid UUID" };
+      }
+      if (!payload.video_url?.trim()) {
+        return { valid: false, error: "video_url is required for preview phase" };
+      }
+      if (!payload.idea?.trim()) {
+        return { valid: false, error: "idea is required for preview phase" };
+      }
+      break;
+
+    case 'approval':
+      if (!payload.video_idea_id?.trim()) {
+        return { valid: false, error: "video_idea_id is required for approval phase" };
+      }
+      if (!validateUUID(payload.video_idea_id)) {
+        return { valid: false, error: "video_idea_id must be a valid UUID" };
+      }
+      if (!payload.video_url?.trim()) {
+        return { valid: false, error: "video_url is required for approval phase" };
+      }
+      break;
+
+    case 'completed':
+      // No specific validation needed for completed phase
+      break;
+
+    default:
+      return { valid: false, error: `Invalid phase: ${payload.phase}` };
+  }
+
+  return { valid: true };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -28,6 +81,22 @@ serve(async (req) => {
   try {
     const payload: VideoWebhookPayload = await req.json();
     console.log('📹 Video webhook received:', payload);
+
+    // Validate payload
+    const validation = validatePayload(payload);
+    if (!validation.valid) {
+      console.error('❌ Validation failed:', validation.error);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid payload', 
+          details: validation.error 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Create Supabase client
     const supabase = createClient(
@@ -62,10 +131,34 @@ serve(async (req) => {
       // Video has been generated and is ready for preview/approval
       console.log('📝 Creating pending video for approval');
       
+      // Use fallback UUID for testing if configured
+      let userId = payload.user_id;
+      const fallbackUUID = Deno.env.get("FALLBACK_TEST_USER_ID");
+      
+      if (!userId && fallbackUUID) {
+        console.log('⚠️ Using fallback test user ID for development');
+        userId = fallbackUUID;
+        
+        // Validate fallback UUID
+        if (!validateUUID(userId)) {
+          console.error('❌ Fallback test user ID is not a valid UUID');
+          return new Response(
+            JSON.stringify({ 
+              error: 'Configuration error', 
+              details: 'Fallback test user ID is not a valid UUID' 
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+      }
+      
       const { error } = await supabase
         .from('pending_videos')
         .insert({
-          user_id: payload.user_id,
+          user_id: userId,
           execution_id: payload.execution_id,
           video_url: payload.video_url,
           idea: payload.idea,
