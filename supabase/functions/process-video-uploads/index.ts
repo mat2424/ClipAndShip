@@ -40,11 +40,52 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Initialize upload status for all platforms
+    // Get video idea to check user tier
+    const { data: videoIdea, error: fetchError } = await supabase
+      .from('video_ideas')
+      .select('user_id')
+      .eq('id', payload.video_idea_id)
+      .single();
+
+    if (fetchError || !videoIdea) {
+      throw new Error('Video idea not found');
+    }
+
+    // Check user tier
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', videoIdea.user_id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error('User profile not found');
+    }
+
+    // Filter out premium platforms for free users
+    const premiumPlatforms = ['tiktok', 'instagram', 'facebook', 'x', 'linkedin'];
+    let allowedPlatforms = payload.selected_platforms;
+    
+    if (profile.subscription_tier === 'free') {
+      const originalCount = allowedPlatforms.length;
+      allowedPlatforms = allowedPlatforms.filter(platform => 
+        !premiumPlatforms.includes(platform.toLowerCase())
+      );
+      
+      if (allowedPlatforms.length < originalCount) {
+        console.log(`🔒 Filtered out premium platforms for free user. Original: ${payload.selected_platforms}, Allowed: ${allowedPlatforms}`);
+      }
+    }
+
+    if (allowedPlatforms.length === 0) {
+      throw new Error('No platforms available for upload with current subscription tier');
+    }
+
+    // Initialize upload status for allowed platforms only
     const uploadStatus: { [key: string]: string } = {};
     const uploadProgress: { [key: string]: number } = {};
     
-    payload.selected_platforms.forEach(platform => {
+    allowedPlatforms.forEach(platform => {
       uploadStatus[platform.toLowerCase()] = 'pending';
       uploadProgress[platform.toLowerCase()] = 0;
     });
@@ -58,8 +99,8 @@ serve(async (req) => {
       })
       .eq('id', payload.video_idea_id);
 
-    // Process uploads for each platform concurrently
-    const uploadPromises = payload.selected_platforms.map(async (platform) => {
+    // Process uploads for allowed platforms concurrently
+    const uploadPromises = allowedPlatforms.map(async (platform) => {
       const platformLower = platform.toLowerCase();
       const account = payload.social_accounts[platformLower];
       

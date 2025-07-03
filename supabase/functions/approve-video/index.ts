@@ -64,12 +64,43 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
+      // Check user tier before processing uploads
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', videoIdea.user_id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Profile fetch error:', profileError);
+        throw new Error('User profile not found');
+      }
+
+      // Filter platforms based on user tier
+      let allowedPlatforms = selected_platforms || videoIdea.selected_platforms;
+      const premiumPlatforms = ['TikTok', 'Instagram', 'Facebook', 'X', 'LinkedIn'];
+      
+      if (profile.subscription_tier === 'free') {
+        const originalCount = allowedPlatforms.length;
+        allowedPlatforms = allowedPlatforms.filter(platform => 
+          !premiumPlatforms.includes(platform)
+        );
+        
+        if (allowedPlatforms.length < originalCount) {
+          console.log(`🔒 Filtered out premium platforms for free user during approval. Original: ${selected_platforms || videoIdea.selected_platforms}, Allowed: ${allowedPlatforms}`);
+        }
+      }
+
+      if (allowedPlatforms.length === 0) {
+        throw new Error('No platforms available for upload with current subscription tier');
+      }
+
       // Process video uploads directly instead of sending to n8n
       const uploadResponse = await supabase.functions.invoke('process-video-uploads', {
         body: {
           video_idea_id: video_idea_id,
           video_url: videoIdea.video_url,
-          selected_platforms: selected_platforms || videoIdea.selected_platforms,
+          selected_platforms: allowedPlatforms,
           social_accounts: social_accounts || {},
           metadata: {
             youtube_title: videoIdea.youtube_title,

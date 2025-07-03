@@ -29,6 +29,32 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // Get video idea to check user tier
+    const { data: videoIdea, error: fetchError } = await supabase
+      .from('video_ideas')
+      .select('user_id')
+      .eq('id', payload.video_idea_id)
+      .single();
+
+    if (fetchError || !videoIdea) {
+      throw new Error('Video idea not found');
+    }
+
+    // Check user tier
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', videoIdea.user_id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error('User profile not found');
+    }
+
+    if (profile.subscription_tier === 'free') {
+      throw new Error('Instagram uploads require a premium subscription');
+    }
+
     // Update upload status to uploading
     await supabase
       .from('video_ideas')

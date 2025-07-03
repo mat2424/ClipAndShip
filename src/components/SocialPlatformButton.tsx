@@ -13,6 +13,7 @@ interface SocialPlatformButtonProps {
   isConnected: boolean;
   isConnecting: boolean;
   isLocked?: boolean;
+  isPremiumRequired?: boolean;
   onConnect: () => void;
 }
 
@@ -24,6 +25,7 @@ export const SocialPlatformButton = ({
   isConnected,
   isConnecting,
   isLocked,
+  isPremiumRequired,
   onConnect,
 }: SocialPlatformButtonProps) => {
   const isImageIcon = icon.startsWith('/lovable-uploads/') || icon.startsWith('http');
@@ -32,8 +34,8 @@ export const SocialPlatformButton = ({
     <div className="relative">
       <Button
         onClick={onConnect}
-        disabled={isConnected || isConnecting}
-        className="w-full h-24 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-800 font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl"
+        disabled={isConnected || isConnecting || isPremiumRequired}
+        className={`w-full h-24 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-800 font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl ${isPremiumRequired ? 'opacity-60' : ''}`}
       >
         <div className="flex flex-col items-center justify-center space-y-2 w-full h-full p-2">
           {isConnecting && <Loader2 className="w-8 h-8 animate-spin text-blue-600" />}
@@ -65,6 +67,15 @@ export const SocialPlatformButton = ({
           <div className="flex items-center space-x-1 bg-yellow-500 text-yellow-900 text-xs px-2 py-1 rounded-full font-medium">
             <Lock className="w-3 h-3" />
             <span>Coming Soon</span>
+          </div>
+        </div>
+      )}
+      
+      {isPremiumRequired && (
+        <div className="absolute top-2 right-2">
+          <div className="flex items-center space-x-1 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+            <Lock className="w-3 h-3" />
+            <span>Premium</span>
           </div>
         </div>
       )}

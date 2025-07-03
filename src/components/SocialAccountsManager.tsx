@@ -1,32 +1,68 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SocialPlatformButton } from "./SocialPlatformButton";
 import { ConnectedAccountCard } from "./ConnectedAccountCard";
 import { useSocialTokens } from "@/hooks/useSocialTokens";
 import { initiateOAuth } from "@/utils/oauthUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
-const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean; customFlow?: boolean }[] = [
-  { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "/lovable-uploads/cd7cb743-01ad-4a0d-a56b-f5e956d0f595.png" },
-  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/bab6eff1-1fa1-4a04-b442-3d1c40472cef.png", customFlow: true },
-  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/ddef2800-d5db-4e6d-8e87-e8d228c761a1.png", customFlow: true },
-  { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "/lovable-uploads/60a3a2a1-4e39-46b3-8d72-382997a7b692.png", locked: true },
-  { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "/lovable-uploads/e602472a-fd56-45af-9504-e325e09c74f3.png", locked: true },
-  { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "/lovable-uploads/34be507c-e645-4c1e-bbb1-b9a922babca0.png", locked: true },
+const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean; customFlow?: boolean; tier?: string }[] = [
+  { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "/lovable-uploads/cd7cb743-01ad-4a0d-a56b-f5e956d0f595.png", tier: "free" },
+  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/bab6eff1-1fa1-4a04-b442-3d1c40472cef.png", customFlow: true, tier: "premium" },
+  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/ddef2800-d5db-4e6d-8e87-e8d228c761a1.png", customFlow: true, tier: "premium" },
+  { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "/lovable-uploads/60a3a2a1-4e39-46b3-8d72-382997a7b692.png", locked: true, tier: "premium" },
+  { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "/lovable-uploads/e602472a-fd56-45af-9504-e325e09c74f3.png", locked: true, tier: "premium" },
+  { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "/lovable-uploads/34be507c-e645-4c1e-bbb1-b9a922babca0.png", locked: true, tier: "premium" },
 ];
 
 export const SocialAccountsManager = () => {
   const { connectedAccounts, loading, refreshAccounts, disconnectAccount } = useSocialTokens();
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState<string>('free');
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUserTier();
+  }, []);
+
+  const fetchUserTier = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserTier(profile.subscription_tier);
+      }
+    } catch (error) {
+      console.error('Error fetching user tier:', error);
+    }
+  };
 
   const handleConnect = async (platform: SocialPlatform) => {
     const platformConfig = platforms.find(p => p.platform === platform);
     
     console.log(`🎯 User clicked connect for: ${platform}`);
+    
+    // Check if platform requires premium tier
+    if (platformConfig?.tier === 'premium' && userTier === 'free') {
+      console.log(`🔒 Platform ${platform} requires premium tier`);
+      toast({
+        title: "Premium Feature",
+        description: `${platformConfig.name} is a premium feature. Upgrade your account to connect this platform.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (platformConfig?.locked) {
       console.log(`🔒 Platform ${platform} is locked`);
@@ -91,6 +127,7 @@ export const SocialAccountsManager = () => {
             isConnected={isConnected(platformConfig.platform)}
             isConnecting={isConnecting === platformConfig.platform}
             isLocked={platformConfig.locked}
+            isPremiumRequired={platformConfig.tier === 'premium' && userTier === 'free'}
             onConnect={() => handleConnect(platformConfig.platform)}
           />
         ))}

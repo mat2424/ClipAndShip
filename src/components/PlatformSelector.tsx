@@ -9,10 +9,10 @@ const PLATFORMS = [{
   tier: "free"
 }, {
   name: "TikTok",
-  tier: "free"
+  tier: "premium"
 }, {
   name: "Instagram",
-  tier: "free"
+  tier: "premium"
 }, {
   name: "Facebook",
   tier: "premium"
@@ -95,7 +95,7 @@ export const PlatformSelector = ({
       {userTier === 'free' && (
         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p className="text-sm text-blue-800">
-            <strong>Upgrade to Premium</strong> to unlock Facebook, X, and LinkedIn platforms for wider reach!
+            <strong>Upgrade to Premium</strong> to unlock TikTok, Instagram, Facebook, X, and LinkedIn platforms for wider reach!
           </p>
         </div>
       )}
