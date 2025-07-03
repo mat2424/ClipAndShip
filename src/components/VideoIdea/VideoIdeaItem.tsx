@@ -24,6 +24,9 @@ interface VideoIdea {
   youtube_title?: string | null;
   tiktok_title?: string | null;
   instagram_title?: string | null;
+  upload_status?: { [platform: string]: string } | null;
+  upload_progress?: { [platform: string]: number } | null;
+  upload_errors?: { [platform: string]: string } | null;
 }
 
 interface VideoIdeaItemProps {
@@ -290,6 +293,42 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
             <ExternalLink className="h-3 w-3" />
             View Video File
           </a>
+        </div>
+      )}
+
+      {/* Upload Progress */}
+      {idea.upload_status && Object.keys(idea.upload_status).length > 0 && (
+        <div className="mb-3">
+          <p className="text-xs text-gray-500 mb-2">Upload Progress:</p>
+          <div className="space-y-2">
+            {Object.entries(idea.upload_status).map(([platform, status]) => (
+              <div key={platform} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                <span className="capitalize text-cool-charcoal font-medium">{platform}</span>
+                <div className="flex items-center space-x-2">
+                  {status === 'uploading' && (
+                    <div className="flex items-center space-x-1">
+                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-blue-600">Uploading...</span>
+                    </div>
+                  )}
+                  {status === 'completed' && (
+                    <span className="text-green-600 font-medium">✓ Completed</span>
+                  )}
+                  {status === 'failed' && (
+                    <div className="flex items-center space-x-1">
+                      <span className="text-red-600 font-medium">✗ Failed</span>
+                      {idea.upload_errors?.[platform] && (
+                        <span className="text-xs text-red-500">({idea.upload_errors[platform]})</span>
+                      )}
+                    </div>
+                  )}
+                  {status === 'pending' && (
+                    <span className="text-gray-500">Pending</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

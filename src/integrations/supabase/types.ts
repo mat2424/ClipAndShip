@@ -157,6 +157,7 @@ export type Database = {
           id: string
           idea_text: string
           instagram_link: string | null
+          instagram_media_id: string | null
           instagram_title: string | null
           n8n_webhook_id: string | null
           preview_video_url: string | null
@@ -166,13 +167,18 @@ export type Database = {
           status: string
           tiktok_link: string | null
           tiktok_title: string | null
+          tiktok_video_id: string | null
           updated_at: string
+          upload_errors: Json | null
+          upload_progress: Json | null
+          upload_status: Json | null
           use_ai_voice: boolean
           user_id: string
           video_url: string | null
           voice_file_url: string | null
           youtube_link: string | null
           youtube_title: string | null
+          youtube_video_id: string | null
         }
         Insert: {
           approval_status?: string | null
@@ -183,6 +189,7 @@ export type Database = {
           id?: string
           idea_text: string
           instagram_link?: string | null
+          instagram_media_id?: string | null
           instagram_title?: string | null
           n8n_webhook_id?: string | null
           preview_video_url?: string | null
@@ -192,13 +199,18 @@ export type Database = {
           status?: string
           tiktok_link?: string | null
           tiktok_title?: string | null
+          tiktok_video_id?: string | null
           updated_at?: string
+          upload_errors?: Json | null
+          upload_progress?: Json | null
+          upload_status?: Json | null
           use_ai_voice?: boolean
           user_id: string
           video_url?: string | null
           voice_file_url?: string | null
           youtube_link?: string | null
           youtube_title?: string | null
+          youtube_video_id?: string | null
         }
         Update: {
           approval_status?: string | null
@@ -209,6 +221,7 @@ export type Database = {
           id?: string
           idea_text?: string
           instagram_link?: string | null
+          instagram_media_id?: string | null
           instagram_title?: string | null
           n8n_webhook_id?: string | null
           preview_video_url?: string | null
@@ -218,13 +231,18 @@ export type Database = {
           status?: string
           tiktok_link?: string | null
           tiktok_title?: string | null
+          tiktok_video_id?: string | null
           updated_at?: string
+          upload_errors?: Json | null
+          upload_progress?: Json | null
+          upload_status?: Json | null
           use_ai_voice?: boolean
           user_id?: string
           video_url?: string | null
           voice_file_url?: string | null
           youtube_link?: string | null
           youtube_title?: string | null
+          youtube_video_id?: string | null
         }
         Relationships: []
       }
