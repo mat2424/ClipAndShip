@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import ConnectAccounts from "./pages/ConnectAccounts";
 import OAuthCallback from "./pages/OAuthCallback";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -23,6 +24,7 @@ const App = () => (
       <HashRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/app" element={<Index />} />
           <Route path="/connect-accounts" element={<ConnectAccounts />} />
           <Route path="/pending-videos" element={<PendingVideosPage />} />

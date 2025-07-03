@@ -24,7 +24,7 @@ const Index = () => {
       setLoading(false);
       
       if (!session) {
-        navigate('/');
+        navigate('/auth');
       }
     });
 
@@ -33,7 +33,7 @@ const Index = () => {
       (event, session) => {
         setUser(session?.user ?? null);
         if (!session && event !== 'INITIAL_SESSION') {
-          navigate('/');
+          navigate('/auth');
         }
       }
     );

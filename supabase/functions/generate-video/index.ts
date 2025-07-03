@@ -15,6 +15,17 @@ serve(async (req) => {
   try {
     const { video_idea_id, video_idea, selected_platforms, use_ai_voice, voice_file_url } = await req.json();
 
+    // Validate inputs
+    if (!video_idea_id || typeof video_idea_id !== 'string') {
+      throw new Error("Invalid video_idea_id");
+    }
+    if (!video_idea || typeof video_idea !== 'string' || video_idea.length > 5000) {
+      throw new Error("Invalid video_idea");
+    }
+    if (!Array.isArray(selected_platforms) || selected_platforms.length === 0) {
+      throw new Error("Invalid selected_platforms");
+    }
+
     // Get the webhook URL from secrets
     const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
     if (!webhookUrl) {

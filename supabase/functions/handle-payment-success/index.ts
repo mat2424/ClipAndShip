@@ -16,8 +16,8 @@ serve(async (req) => {
   try {
     const { session_id } = await req.json();
 
-    if (!session_id) {
-      throw new Error("No session ID provided");
+    if (!session_id || typeof session_id !== 'string') {
+      throw new Error("Invalid session ID provided");
     }
 
     // Initialize Stripe
@@ -42,7 +42,7 @@ serve(async (req) => {
     const userId = session.metadata?.user_id;
     const credits = parseInt(session.metadata?.credits || "0");
 
-    if (!userId || !credits) {
+    if (!userId || !credits || credits <= 0 || credits > 10000) {
       throw new Error("Invalid session metadata");
     }
 

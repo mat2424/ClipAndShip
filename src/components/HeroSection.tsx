@@ -20,7 +20,7 @@ export const HeroSection = () => {
             No video editing skills required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/app" className="inline-block">
+            <Link to="/auth" className="inline-block">
               <Button className="bg-cool-turquoise hover:bg-cool-turquoise-hover text-cool-charcoal px-8 py-4 text-lg font-medium rounded-lg transition-colors">
                 Start Creating Videos
                 <ArrowRight className="w-5 h-5 ml-2" />

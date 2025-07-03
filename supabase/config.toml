@@ -1,1 +1,40 @@
 project_id = "djmkzsxsfwyrqmhcgsyx"
+
+[functions.approve-video]
+verify_jwt = true
+
+[functions.create-payment]
+verify_jwt = true
+
+[functions.generate-video]
+verify_jwt = true
+
+[functions.handle-approval-response]
+verify_jwt = false
+
+[functions.handle-payment-success]
+verify_jwt = false
+
+[functions.handle-video-webhook]
+verify_jwt = false
+
+[functions.process-video-uploads]
+verify_jwt = true
+
+[functions.refresh-social-tokens]
+verify_jwt = true
+
+[functions.submit-video]
+verify_jwt = true
+
+[functions.upload-to-instagram]
+verify_jwt = true
+
+[functions.upload-to-tiktok]
+verify_jwt = true
+
+[functions.upload-to-youtube]
+verify_jwt = true
+
+[functions.video-ready]
+verify_jwt = true
