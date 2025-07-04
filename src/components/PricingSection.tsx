@@ -16,14 +16,14 @@ const SUBSCRIPTION_TIERS = [
   {
     name: 'Premium',
     price: 29,
-    features: ['Access to Facebook, X, LinkedIn', 'Priority support', 'Advanced analytics'],
+    features: ['Access to Instagram, TikTok, Threads', 'Priority support', 'Advanced analytics'],
     icon: Crown,
     color: 'purple'
   },
   {
     name: 'Pro',
     price: 59,
-    features: ['All Premium features', 'Use custom Voice', 'API access', 'Dedicated account manager'],
+    features: ['All Premium features', 'Access to Facebook, X, LinkedIn', 'Use custom Voice', 'API access', 'Dedicated account manager'],
     icon: Star,
     color: 'gold'
   },
@@ -176,7 +176,7 @@ export const PricingSection = () => {
                   disabled={subLoading === tier.name}
                   size="sm"
                   variant="outline"
-                  className="w-full text-cool-charcoal border-cool-charcoal/30 hover:bg-cool-charcoal/10"
+                  className="w-full text-white border-cool-charcoal/30 hover:bg-cool-charcoal/10 hover:text-white"
                 >
                   {subLoading === tier.name ? "Processing..." : `Upgrade to ${tier.name}`}
                 </Button>

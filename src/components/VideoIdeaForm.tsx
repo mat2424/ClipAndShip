@@ -123,7 +123,12 @@ export const VideoIdeaForm = () => {
           disabled={submissionLoading || !validation.valid} 
           className="w-full bg-cool-aqua hover:bg-cool-aqua-hover text-cool-charcoal font-medium"
         >
-          {submissionLoading ? "Submitting..." : "Generate Video with Social Integration (1 Credit)"}
+          {submissionLoading ? "Submitting..." : (
+            <>
+              <span className="hidden sm:inline">Generate Video with Social Integration (1 Credit)</span>
+              <span className="sm:hidden">Generate Video (1 Credit)</span>
+            </>
+          )}
         </Button>
       </form>
 

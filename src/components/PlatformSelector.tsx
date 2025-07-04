@@ -101,15 +101,15 @@ export const PlatformSelector = ({
       </div>
       {userTier === 'free' && (
         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-800">
-            <strong className="text-white">Upgrade to Premium</strong> to unlock Instagram, TikTok, and Threads platforms for wider reach!
+          <p className="text-sm text-blue-600">
+            <strong>Upgrade to Premium</strong> to unlock Instagram, TikTok, and Threads platforms for wider reach!
           </p>
         </div>
       )}
       {userTier === 'premium' && (
         <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-md">
-          <p className="text-sm text-purple-800">
-            <strong className="text-white">Upgrade to Pro</strong> to unlock Facebook, X, and LinkedIn platforms for maximum reach!
+          <p className="text-sm text-blue-600">
+            <strong>Upgrade to Pro</strong> to unlock Facebook, X, and LinkedIn platforms for maximum reach!
           </p>
         </div>
       )}
