@@ -39,6 +39,36 @@ export type Database = {
         }
         Relationships: []
       }
+      health_check_logs: {
+        Row: {
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          response_time_ms: number | null
+          source: string
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          source?: string
+          status: string
+          timestamp?: string
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          source?: string
+          status?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
       pending_videos: {
         Row: {
           approved_at: string | null
