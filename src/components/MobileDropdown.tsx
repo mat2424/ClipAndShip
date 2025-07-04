@@ -45,7 +45,7 @@ export const MobileDropdown = ({ user, onSignOut }: MobileDropdownProps) => {
         <DropdownMenuItem className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <CreditCard className="w-4 h-4" />
-            <span>Credits</span>
+            <span>Balance</span>
           </div>
           <CreditBalance />
         </DropdownMenuItem>
