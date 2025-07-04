@@ -36,6 +36,10 @@ const Index = () => {
         if (!session && event !== 'INITIAL_SESSION') {
           navigate('/auth');
         }
+        // Redirect authenticated users from landing to dashboard
+        if (session && window.location.pathname === '/') {
+          navigate('/app');
+        }
       }
     );
 
@@ -71,9 +75,11 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">C</span>
-                </div>
+                <img 
+                  src="/lovable-uploads/02ed2fe3-1ff8-4c39-86c1-1c2c8e1be28c.png" 
+                  alt="Clip & Ship AI Logo" 
+                  className="w-8 h-8 object-contain"
+                />
                 <h1 className="text-xl font-bold text-foreground">Clip & Ship AI</h1>
               </Link>
             </div>

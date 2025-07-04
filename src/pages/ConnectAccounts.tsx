@@ -59,7 +59,7 @@ const ConnectAccounts = () => {
             {/* Logo and Title - Clickable to return to landing */}
             <Link to="/" className="flex items-center space-x-2 sm:space-x-3 hover:opacity-80 transition-opacity">
               <img 
-                src="/lovable-uploads/f280c057-8466-4c81-8f30-692c7acda621.png" 
+                src="/lovable-uploads/02ed2fe3-1ff8-4c39-86c1-1c2c8e1be28c.png" 
                 alt="Clip & Ship AI Logo" 
                 className="w-8 h-8 sm:w-10 sm:h-10 object-contain flex-shrink-0"
               />

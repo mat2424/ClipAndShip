@@ -155,7 +155,7 @@ const OAuthCallback = () => {
           // Clear the URL hash to prevent reprocessing
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          setTimeout(() => navigate("/connect-accounts"), 1000);
+          setTimeout(() => navigate("/app"), 1000);
           return;
         }
         
@@ -170,13 +170,13 @@ const OAuthCallback = () => {
             description: `Successfully connected your ${result.platform} account.`,
           });
           
-          navigate("/connect-accounts");
+          navigate("/app");
           return;
         }
         
         // No OAuth parameters found
-        console.log('⚠️ No OAuth parameters found, redirecting to connect accounts');
-        navigate("/connect-accounts");
+        console.log('⚠️ No OAuth parameters found, redirecting to dashboard');
+        navigate("/app");
         
       } catch (error) {
         console.error("💥 OAuth callback error:", error);
