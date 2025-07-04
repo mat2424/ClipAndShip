@@ -17,25 +17,7 @@ const Landing = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
-      
-      // Redirect authenticated users to dashboard
-      if (session) {
-        window.location.href = '/app';
-      }
     });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        // Redirect authenticated users to dashboard
-        if (session) {
-          window.location.href = '/app';
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {

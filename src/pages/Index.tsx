@@ -36,10 +36,6 @@ const Index = () => {
         if (!session && event !== 'INITIAL_SESSION') {
           navigate('/auth');
         }
-        // Redirect authenticated users from landing to dashboard
-        if (session && window.location.pathname === '/') {
-          navigate('/app');
-        }
       }
     );
 
