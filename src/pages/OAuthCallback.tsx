@@ -57,7 +57,7 @@ const OAuthCallback = () => {
             variant: "destructive",
           });
           
-          setTimeout(() => navigate("/connect-accounts"), 2000);
+        setTimeout(() => navigate("/app"), 2000);
           return;
         }
         
@@ -118,7 +118,11 @@ const OAuthCallback = () => {
             const channelData = await testResponse.json();
             console.log('✅ YouTube API test successful:', channelData);
             
-            // Store the YouTube connection in our database with verified token
+            // Extract channel name from the response
+            const channelName = channelData.items?.[0]?.snippet?.title || 'YouTube Channel';
+            console.log('📺 YouTube channel name:', channelName);
+            
+            // Store the YouTube connection in our database with verified token and channel name
             const { data, error: dbError } = await supabase
               .from('social_tokens')
               .upsert(
@@ -128,6 +132,7 @@ const OAuthCallback = () => {
                   access_token: providerToken, // Store the provider token for YouTube API calls
                   refresh_token: refreshToken,
                   expires_at: expirationDate,
+                  username: channelName, // Store the YouTube channel name
                 },
                 {
                   onConflict: 'user_id,platform'
@@ -155,7 +160,7 @@ const OAuthCallback = () => {
           // Clear the URL hash to prevent reprocessing
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          setTimeout(() => navigate("/connect-accounts"), 1000);
+          setTimeout(() => navigate("/app"), 1000);
           return;
         }
         
@@ -170,7 +175,7 @@ const OAuthCallback = () => {
             description: `Successfully connected your ${result.platform} account.`,
           });
           
-          navigate("/connect-accounts");
+          navigate("/app");
           return;
         }
         
@@ -197,7 +202,7 @@ const OAuthCallback = () => {
           variant: "destructive",
         });
         
-        setTimeout(() => navigate("/connect-accounts"), 2000);
+        setTimeout(() => navigate("/app"), 2000);
       } finally {
         setProcessing(false);
       }

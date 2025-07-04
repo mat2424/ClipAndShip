@@ -124,6 +124,7 @@ export type Database = {
           refresh_token: string | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           access_token: string
@@ -134,6 +135,7 @@ export type Database = {
           refresh_token?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           access_token?: string
@@ -144,6 +146,7 @@ export type Database = {
           refresh_token?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }

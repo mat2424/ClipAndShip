@@ -18,17 +18,6 @@ export const ConnectedAccountCard = ({
   platformName,
   onDisconnect,
 }: ConnectedAccountCardProps) => {
-  const [userEmail, setUserEmail] = useState<string>("");
-
-  useEffect(() => {
-    const fetchUserEmail = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) {
-        setUserEmail(user.email);
-      }
-    };
-    fetchUserEmail();
-  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -40,7 +29,7 @@ export const ConnectedAccountCard = ({
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-white text-lg mb-2">{platformName}</h4>
           <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-sm text-cool-light">
-            <span className="truncate">{userEmail}</span>
+            <span className="truncate">{account.username || `${platformName} Account`}</span>
             <span className="flex items-center space-x-1">
               <Calendar className="w-4 h-4 flex-shrink-0" />
               <span>Connected {formatDate(account.created_at)}</span>
