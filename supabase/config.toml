@@ -3,8 +3,14 @@ project_id = "djmkzsxsfwyrqmhcgsyx"
 [functions.approve-video]
 verify_jwt = true
 
+[functions.call-n8n-webhook]
+verify_jwt = false
+
 [functions.create-payment]
 verify_jwt = true
+
+[functions.diagnostic]
+verify_jwt = false
 
 [functions.generate-video]
 verify_jwt = true
@@ -26,6 +32,9 @@ verify_jwt = true
 
 [functions.submit-video]
 verify_jwt = true
+
+[functions.trigger-n8n-webhook]
+verify_jwt = false
 
 [functions.upload-to-instagram]
 verify_jwt = true

@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { AuthForm } from "@/components/AuthForm";
 import { SocialAccountsManager } from "@/components/SocialAccountsManager";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Settings, Menu, X, CreditCard, User as UserIcon, LogOut, Clock } from "lucide-react";
+import { ArrowLeft, Settings, Menu, X, CreditCard, User as UserIcon, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,13 +68,6 @@ const ConnectAccounts = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden sm:flex items-center space-x-4">
-              <Link to="/pending-videos">
-                <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4" />
-                  <span>Pending Videos</span>
-                </Button>
-              </Link>
-              
               <CreditBalance />
               
               <Link
