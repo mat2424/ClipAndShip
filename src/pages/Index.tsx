@@ -7,9 +7,10 @@ import { VideoIdeasList } from "@/components/VideoIdeasList";
 import { CreditBalance } from "@/components/CreditBalance";
 import { PricingSection } from "@/components/PricingSection";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Clock, Video } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { MobileDropdown } from "@/components/MobileDropdown";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -69,17 +70,11 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-foreground">VideoSpark</h1>
+              <h1 className="text-xl font-bold text-foreground">Clip & Ship</h1>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <Link to="/pending-videos">
-                <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4" />
-                  <span>Pending Approvals</span>
-                </Button>
-              </Link>
-              
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
               <Link to="/connect-accounts">
                 <Button variant="outline" size="sm">
                   Connect Accounts
@@ -100,6 +95,14 @@ const Index = () => {
                   <LogOut className="w-4 h-4" />
                 </Button>
               </div>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="md:hidden">
+              <MobileDropdown 
+                user={user}
+                onSignOut={handleSignOut}
+              />
             </div>
           </div>
         </div>

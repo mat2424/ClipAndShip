@@ -34,13 +34,13 @@ export const VideoIdeasList = () => {
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b bg-cool-turquoise">
-          <h2 className="text-xl font-semibold mb-4 text-cool-charcoal">Your Videos</h2>
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-4 md:p-6 border-b bg-cool-turquoise">
+          <h2 className="text-lg md:text-xl font-semibold mb-4 text-cool-charcoal">Your Videos</h2>
         </div>
-        <div className="divide-y">
+        <div className="divide-y overflow-hidden">
           {videoIdeas.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-4 md:p-6 text-center text-gray-500">
               No videos yet. Create your first video above!
             </div>
           ) : (

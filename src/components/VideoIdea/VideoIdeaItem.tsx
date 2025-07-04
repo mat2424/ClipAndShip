@@ -135,7 +135,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
   };
 
   return (
-    <div className="p-6 bg-cool-turquoise">
+    <div className="p-4 md:p-6 bg-cool-turquoise overflow-hidden">
       {/* Inline Approval Buttons */}
       {shouldShowInlineApproval(idea) && (
         <div className="mb-4 flex gap-2 items-center">
@@ -220,11 +220,11 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
       )}
 
       <div className="flex justify-between items-start mb-2">
-        <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-2xl text-left">
+        <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-lg md:text-2xl text-left break-words overflow-hidden">
           {idea.idea_text}
         </p>
-        <div className="flex gap-2 items-center">
-          <span className="text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+        <div className="flex gap-2 items-center flex-shrink-0">
+          <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
             {getStatusDisplay(idea)}
           </span>
           
@@ -254,9 +254,9 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-1 mb-2">
+      <div className="flex flex-wrap gap-1 mb-2 overflow-hidden">
         {idea.selected_platforms.map((platform) => (
-          <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+          <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs md:text-sm whitespace-nowrap">
             {platform}
           </span>
         ))}
@@ -303,29 +303,29 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
           <div className="space-y-2">
             {Object.entries(idea.upload_status).map(([platform, status]) => (
               <div key={platform} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
-                <span className="capitalize text-cool-charcoal font-medium">{platform}</span>
-                <div className="flex items-center space-x-2">
-                  {status === 'uploading' && (
-                    <div className="flex items-center space-x-1">
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="text-blue-600">Uploading...</span>
-                    </div>
-                  )}
-                  {status === 'completed' && (
-                    <span className="text-green-600 font-medium">✓ Completed</span>
-                  )}
-                  {status === 'failed' && (
-                    <div className="flex items-center space-x-1">
-                      <span className="text-red-600 font-medium">✗ Failed</span>
-                      {idea.upload_errors?.[platform] && (
-                        <span className="text-xs text-red-500">({idea.upload_errors[platform]})</span>
-                      )}
-                    </div>
-                  )}
-                  {status === 'pending' && (
-                    <span className="text-gray-500">Pending</span>
-                  )}
-                </div>
+                 <span className="capitalize text-cool-charcoal font-medium truncate max-w-[80px] md:max-w-none">{platform}</span>
+                 <div className="flex items-center space-x-2 flex-shrink-0">
+                   {status === 'uploading' && (
+                     <div className="flex items-center space-x-1">
+                       <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                       <span className="text-blue-600 text-xs md:text-sm whitespace-nowrap">Uploading...</span>
+                     </div>
+                   )}
+                   {status === 'completed' && (
+                     <span className="text-green-600 font-medium text-xs md:text-sm whitespace-nowrap">✓ Completed</span>
+                   )}
+                   {status === 'failed' && (
+                     <div className="flex items-center space-x-1">
+                       <span className="text-red-600 font-medium text-xs md:text-sm whitespace-nowrap">✗ Failed</span>
+                       {idea.upload_errors?.[platform] && (
+                         <span className="text-xs text-red-500 truncate max-w-[60px]">({idea.upload_errors[platform]})</span>
+                       )}
+                     </div>
+                   )}
+                   {status === 'pending' && (
+                     <span className="text-gray-500 text-xs md:text-sm whitespace-nowrap">Pending</span>
+                   )}
+                 </div>
               </div>
             ))}
           </div>

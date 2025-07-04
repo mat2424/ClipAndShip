@@ -81,7 +81,7 @@ const Auth = () => {
             ← Back to home
           </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
-            VideoSpark
+            Clip & Ship
           </h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             {isSignUp ? "Create your account" : "Sign in to your account"}

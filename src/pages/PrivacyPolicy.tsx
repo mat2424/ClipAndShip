@@ -91,7 +91,7 @@ const PrivacyPolicy = () => {
                 If you have questions about this Privacy Policy, please contact us at:
               </p>
               <p className="text-gray-700">
-                Email: support@videosparkpublish.com
+                Email: support@clipandship.com
               </p>
             </section>
 
