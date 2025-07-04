@@ -101,20 +101,13 @@ const ConnectAccounts = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-card border-border text-foreground">
-                  <DropdownMenuLabel className="text-primary">Account Settings</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-primary">{user.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-border" />
                   
                   <DropdownMenuItem asChild className="hover:bg-accent">
-                    <Link to="/pending-videos" className="flex items-center space-x-2 w-full">
-                      <Clock className="w-4 h-4" />
-                      <span>Pending Videos</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem asChild className="hover:bg-accent">
-                    <Link to="/app" className="flex items-center space-x-2 w-full">
-                      <UserIcon className="w-4 h-4" />
-                      <span>Main Page</span>
+                    <Link to="/connect-accounts" className="flex items-center space-x-2 w-full">
+                      <Settings className="w-4 h-4" />
+                      <span>Connect Accounts</span>
                     </Link>
                   </DropdownMenuItem>
                   
@@ -122,18 +115,12 @@ const ConnectAccounts = () => {
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-2">
                         <CreditCard className="w-4 h-4" />
-                        <span>Credits</span>
+                        <span>Balance</span>
                       </div>
                       <CreditBalance />
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="hover:bg-accent cursor-default">
-                    <div className="flex items-center space-x-2">
-                      <Settings className="w-4 h-4" />
-                      <span>Free Plan</span>
-                    </div>
-                  </DropdownMenuItem>
                   
                   <DropdownMenuSeparator className="bg-border" />
                   
