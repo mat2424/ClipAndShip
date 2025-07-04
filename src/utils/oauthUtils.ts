@@ -63,7 +63,7 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     const scopes = platformScopes[platform];
 
     // Use the current origin for redirect
-    const redirectTo = `${window.location.origin}/oauth-callback`;
+    const redirectTo = `${window.location.origin}/#/oauth-callback`;
 
     console.log(`🔗 OAuth config:`, {
       provider,
@@ -108,7 +108,7 @@ const initiateCustomOAuth = async (platform: 'tiktok' | 'instagram') => {
     // Store state in localStorage for verification later
     localStorage.setItem(`${platform}_oauth_state`, state);
     
-    const redirectUri = `${window.location.origin}/oauth-callback`;
+    const redirectUri = `${window.location.origin}/#/oauth-callback`;
     
     let authUrl = '';
     
