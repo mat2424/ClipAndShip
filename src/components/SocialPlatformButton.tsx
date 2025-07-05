@@ -35,7 +35,7 @@ export const SocialPlatformButton = ({
       <Button
         onClick={onConnect}
         disabled={isConnected || isConnecting || isPremiumRequired}
-        className={`w-full h-24 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-800 font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl ${isPremiumRequired ? 'opacity-60' : ''}`}
+        className={`w-full h-24 min-w-[140px] bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-800 font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg hover:shadow-xl ${isPremiumRequired ? 'opacity-60' : ''}`}
       >
         <div className="flex flex-col items-center justify-center space-y-2 w-full h-full p-2">
           {isConnecting && <Loader2 className="w-8 h-8 animate-spin text-blue-600" />}
