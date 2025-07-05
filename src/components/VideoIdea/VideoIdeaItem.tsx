@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ExpandableCaption } from "@/components/ExpandableCaption";
 import { UserPlanDisplay } from "@/components/UserPlanDisplay";
+import { useSocialTokens } from "@/hooks/useSocialTokens";
 
 interface VideoIdea {
   id: string;
@@ -68,16 +69,43 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
   const [showRejectInput, setShowRejectInput] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const { toast } = useToast();
+  const { connectedAccounts } = useSocialTokens();
 
   const videoUrl = idea.video_url || idea.preview_video_url;
 
   const handleApprove = async () => {
+    // Check if user has connected at least one social account
+    if (connectedAccounts.length === 0) {
+      toast({
+        title: "No Social Accounts Connected",
+        description: "Please connect at least one social media account before approving videos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // Build social accounts object with OAuth tokens
+      const socialAccounts: Record<string, any> = {};
+      idea.selected_platforms.forEach(platform => {
+        const token = connectedAccounts.find(t => t.platform === platform.toLowerCase());
+        if (token) {
+          socialAccounts[platform.toLowerCase()] = {
+            access_token: token.access_token,
+            refresh_token: token.refresh_token,
+            expires_at: token.expires_at
+          };
+        }
+      });
+
+      console.log('Sending approval with social accounts:', socialAccounts);
+
       const { error } = await supabase.functions.invoke('approve-video', {
         body: {
           video_idea_id: idea.id,
           approved: true,
+          social_accounts: socialAccounts,
           selected_platforms: idea.selected_platforms
         }
       });
