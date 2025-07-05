@@ -51,12 +51,6 @@ function validatePayload(payload: VideoWebhookPayload): { valid: boolean; error?
       break;
 
     case 'approval':
-      if (!payload.video_idea_id?.trim()) {
-        return { valid: false, error: "video_idea_id is required for approval phase" };
-      }
-      if (!validateUUID(payload.video_idea_id)) {
-        return { valid: false, error: "video_idea_id must be a valid UUID" };
-      }
       if (!payload.video_url?.trim()) {
         return { valid: false, error: "video_url is required for approval phase" };
       }
@@ -109,16 +103,32 @@ serve(async (req) => {
       // Video has been generated and is ready for approval
       console.log('✅ Updating video_ideas for approval phase');
       
+      // Find the most recent video idea instead of requiring video_idea_id
+      const { data: recentVideoIdea, error: queryError } = await supabase
+        .from('video_ideas')
+        .select('id')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (queryError || !recentVideoIdea) {
+        console.error('❌ Error finding most recent video idea:', queryError);
+        throw new Error('No video idea found to update');
+      }
+
+      console.log('🎯 Using most recent video idea ID:', recentVideoIdea.id);
+      
       const { error } = await supabase
         .from('video_ideas')
         .update({
           status: 'completed',
-          approval_status: 'preview_ready',
+          approval_status: 'ready_for_approval',
           video_url: payload.video_url,
           preview_video_url: payload.video_url, // Same URL for both fields
+          caption: payload.caption,
           updated_at: new Date().toISOString()
         })
-        .eq('id', payload.video_idea_id);
+        .eq('id', recentVideoIdea.id);
 
       if (error) {
         console.error('❌ Error updating video_ideas:', error);
