@@ -117,17 +117,9 @@ export const SocialAccountsManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Configuration Notice for TikTok/Instagram */}
-      <div className="bg-cool-gray/20 border border-cool-gray rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-cool-charcoal mb-2">Setup Required for TikTok & Instagram</h3>
-        <div className="text-sm text-cool-charcoal/80 space-y-2">
-          <p><strong>TikTok:</strong> Update your TikTok client key in the code and add <code>https://video-spark-publish.vercel.app/oauth-callback</code> as a redirect URI in your TikTok developer portal.</p>
-          <p><strong>Instagram:</strong> Update your Instagram client ID in the code and configure the redirect URI in your Facebook Developer portal.</p>
-        </div>
-      </div>
 
       {/* Available Platforms */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center">
         {platforms.map((platformConfig) => (
           <SocialPlatformButton
             key={platformConfig.platform}
