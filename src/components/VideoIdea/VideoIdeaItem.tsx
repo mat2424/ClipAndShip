@@ -220,7 +220,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
       )}
 
       <div className="flex justify-between items-start mb-2">
-        <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-lg md:text-2xl text-left break-words overflow-hidden">
+        <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-lg md:text-2xl text-left break-words hyphens-auto leading-tight">
           {idea.idea_text}
         </p>
         <div className="flex gap-2 items-center flex-shrink-0">
