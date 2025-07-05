@@ -87,15 +87,7 @@ export const useVideoSubmissionWithTokens = () => {
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        // For anonymous users, show auth prompt
-        toast({
-          title: "Authentication Required",
-          description: "Please sign in to generate videos. Click the Sign In button in the top right.",
-          variant: "destructive",
-        });
-        return false;
-      }
+      if (!user) throw new Error("Not authenticated");
 
       // Get user profile to check tier
       const { data: profile } = await supabase

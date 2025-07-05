@@ -24,14 +24,18 @@ const Index = () => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Don't redirect if not authenticated - allow anonymous access
+      if (!session) {
+        navigate('/auth');
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
-        // Don't redirect on auth changes - allow anonymous access
+        if (!session && event !== 'INITIAL_SESSION') {
+          navigate('/auth');
+        }
       }
     );
 
@@ -55,6 +59,10 @@ const Index = () => {
     return <div className="min-h-screen flex items-center justify-center bg-background text-foreground">Loading...</div>;
   }
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -74,52 +82,34 @@ const Index = () => {
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              {user ? (
-                <>
-                  <Link to="/connect-accounts">
-                    <Button variant="outline" size="sm">
-                      Connect Accounts
-                    </Button>
-                  </Link>
-                  
-                  <CreditBalance />
-                  
-                  <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{user.email}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleSignOut}
-                      className="text-muted-foreground hover:text-foreground"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <Link to="/auth">
-                  <Button variant="outline" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-              )}
+              <Link to="/connect-accounts">
+                <Button variant="outline" size="sm">
+                  Connect Accounts
+                </Button>
+              </Link>
+              
+              <CreditBalance />
+              
+              <div className="flex items-center space-x-2">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSignOut}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Mobile Navigation */}
             <div className="md:hidden">
-              {user ? (
-                <MobileDropdown 
-                  user={user}
-                  onSignOut={handleSignOut}
-                />
-              ) : (
-                <Link to="/auth">
-                  <Button variant="outline" size="sm">
-                    Sign In
-                  </Button>
-                </Link>
-              )}
+              <MobileDropdown 
+                user={user}
+                onSignOut={handleSignOut}
+              />
             </div>
           </div>
         </div>
@@ -131,7 +121,7 @@ const Index = () => {
           {/* Left Column - Video Creation */}
           <div className="lg:col-span-2 space-y-8">
             <VideoIdeaForm />
-            {user && <VideoIdeasList />}
+            <VideoIdeasList />
           </div>
 
           {/* Right Column - Pricing */}
