@@ -106,33 +106,7 @@ export const useVideoIdeaForm = () => {
         voiceFileUrl = await handleVoiceFileUpload(voiceFile);
       }
 
-      // First, try calling the webhook to make sure it's working
-      const { data: webhookData, error: webhookError } = await supabase.functions.invoke('call-n8n-webhook', {
-        body: {
-          phase: 'preview',
-          video_idea: ideaText,
-          selected_platforms: selectedPlatforms,
-          use_ai_voice: !useCustomVoice // Invert the logic
-        }
-      });
-
-      if (webhookError) {
-        // Don't create video entry if webhook fails
-        let errorMessage = "Failed to start video generation";
-        
-        // Provide more specific error message based on the webhook error
-        if (webhookError.message?.includes('404')) {
-          errorMessage = "Video generation service is currently unavailable. The N8N webhook may not be active or properly configured.";
-        } else if (webhookError.message?.includes('webhook')) {
-          errorMessage = "Unable to connect to video generation service. Please try again later.";
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      console.log("Webhook response:", webhookData);
-
-      // Only create video idea record AFTER successful webhook call
+      // First, create video idea record to get the UUID
       const { data: videoIdea, error } = await supabase
         .from('video_ideas')
         .insert({
@@ -148,6 +122,38 @@ export const useVideoIdeaForm = () => {
         .single();
 
       if (error) throw error;
+
+      // Now call the webhook with the video_idea_id UUID
+      const { data: webhookData, error: webhookError } = await supabase.functions.invoke('call-n8n-webhook', {
+        body: {
+          phase: 'preview',
+          video_idea_id: videoIdea.id, // Pass the UUID
+          video_idea: ideaText,
+          selected_platforms: selectedPlatforms,
+          use_ai_voice: !useCustomVoice // Invert the logic
+        }
+      });
+
+      if (webhookError) {
+        // If webhook fails, mark the video as failed
+        await supabase
+          .from('video_ideas')
+          .update({ status: 'failed' })
+          .eq('id', videoIdea.id);
+
+        let errorMessage = "Failed to start video generation";
+        
+        // Provide more specific error message based on the webhook error
+        if (webhookError.message?.includes('404')) {
+          errorMessage = "Video generation service is currently unavailable. The N8N webhook may not be active or properly configured.";
+        } else if (webhookError.message?.includes('webhook')) {
+          errorMessage = "Unable to connect to video generation service. Please try again later.";
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      console.log("Webhook response:", webhookData);
 
       // Update with preview URL if available
       if (webhookData.preview_video_url) {
