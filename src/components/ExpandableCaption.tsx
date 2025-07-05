@@ -69,7 +69,7 @@ export const ExpandableCaption = ({ caption, videoId, onUpdate }: ExpandableCapt
               placeholder="Enter video caption..."
             />
           ) : (
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+            <p className="text-sm text-black whitespace-pre-wrap">
               {displayCaption}
             </p>
           )}
@@ -114,7 +114,7 @@ export const ExpandableCaption = ({ caption, videoId, onUpdate }: ExpandableCapt
           variant="ghost"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="h-8 text-xs"
+          className="h-8 text-xs text-black"
         >
           {isExpanded ? (
             <>

@@ -272,7 +272,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
       {/* Expandable Caption */}
       {idea.caption && (
         <div className="mb-4">
-          <p className="text-sm font-medium text-cool-charcoal mb-2">Caption:</p>
+          <p className="text-sm font-medium text-black mb-2">Caption:</p>
           <ExpandableCaption 
             caption={idea.caption} 
             videoId={idea.id}

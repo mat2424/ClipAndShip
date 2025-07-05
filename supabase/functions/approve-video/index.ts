@@ -78,16 +78,26 @@ serve(async (req) => {
 
       // Filter platforms based on user tier
       let allowedPlatforms = selected_platforms || videoIdea.selected_platforms;
-      const premiumPlatforms = ['TikTok', 'Instagram', 'Facebook', 'X', 'LinkedIn'];
+      const premiumPlatforms = ['TikTok', 'X', 'LinkedIn'];
+      const proPlatforms = ['Instagram', 'Facebook'];
       
       if (profile.subscription_tier === 'free') {
         const originalCount = allowedPlatforms.length;
         allowedPlatforms = allowedPlatforms.filter(platform => 
-          !premiumPlatforms.includes(platform)
+          !premiumPlatforms.includes(platform) && !proPlatforms.includes(platform)
         );
         
         if (allowedPlatforms.length < originalCount) {
-          console.log(`🔒 Filtered out premium platforms for free user during approval. Original: ${selected_platforms || videoIdea.selected_platforms}, Allowed: ${allowedPlatforms}`);
+          console.log(`🔒 Filtered out premium/pro platforms for free user during approval. Original: ${selected_platforms || videoIdea.selected_platforms}, Allowed: ${allowedPlatforms}`);
+        }
+      } else if (profile.subscription_tier === 'premium') {
+        const originalCount = allowedPlatforms.length;
+        allowedPlatforms = allowedPlatforms.filter(platform => 
+          !proPlatforms.includes(platform)
+        );
+        
+        if (allowedPlatforms.length < originalCount) {
+          console.log(`🔒 Filtered out pro platforms for premium user during approval. Original: ${selected_platforms || videoIdea.selected_platforms}, Allowed: ${allowedPlatforms}`);
         }
       }
 
