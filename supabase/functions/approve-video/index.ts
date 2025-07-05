@@ -137,26 +137,22 @@ serve(async (req) => {
       );
 
     } else {
-      console.log(`Rejecting video ${video_idea_id}`);
+      console.log(`Rejecting and deleting video ${video_idea_id}`);
       
-      // Update status to rejected
-      const { error: updateError } = await supabase
+      // Delete the video idea completely
+      const { error: deleteError } = await supabase
         .from('video_ideas')
-        .update({
-          approval_status: 'rejected',
-          rejected_reason: rejection_reason || 'Not approved by user',
-          status: 'rejected'
-        })
+        .delete()
         .eq('id', video_idea_id);
 
-      if (updateError) throw updateError;
+      if (deleteError) throw deleteError;
 
-      console.log(`✅ Video rejected successfully`);
+      console.log(`✅ Video rejected and deleted successfully`);
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Video rejected and n8n workflow notified' 
+          message: 'Video rejected and deleted from database' 
         }),
         { 
           status: 200, 
