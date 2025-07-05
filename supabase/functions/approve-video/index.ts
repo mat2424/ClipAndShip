@@ -95,35 +95,45 @@ serve(async (req) => {
         throw new Error('No platforms available for upload with current subscription tier');
       }
 
-      // Process video uploads directly instead of sending to n8n
-      const uploadResponse = await supabase.functions.invoke('process-video-uploads', {
-        body: {
-          video_idea_id: video_idea_id,
-          video_url: videoIdea.video_url,
-          selected_platforms: allowedPlatforms,
-          social_accounts: social_accounts || {},
-          metadata: {
-            youtube_title: videoIdea.youtube_title,
-            tiktok_title: videoIdea.tiktok_title,
-            instagram_title: videoIdea.instagram_title,
-            caption: videoIdea.caption
-          }
+      // Send all video data to N8N webhook for processing
+      const webhookData = {
+        video_idea_id: video_idea_id,
+        video_url: videoIdea.video_url,
+        selected_platforms: allowedPlatforms,
+        social_accounts: social_accounts || {},
+        video_data: {
+          id: videoIdea.id,
+          idea_text: videoIdea.idea_text,
+          caption: videoIdea.caption,
+          youtube_title: videoIdea.youtube_title,
+          tiktok_title: videoIdea.tiktok_title,
+          instagram_title: videoIdea.instagram_title,
+          environment_prompt: videoIdea.environment_prompt,
+          sound_prompt: videoIdea.sound_prompt,
+          created_at: videoIdea.created_at,
+          user_id: videoIdea.user_id,
+          use_ai_voice: videoIdea.use_ai_voice,
+          voice_file_url: videoIdea.voice_file_url
         }
+      };
+
+      console.log('Sending video approval data to N8N webhook:', webhookData);
+
+      // Send to N8N webhook
+      const webhookResponse = await fetch('https://clipandship.app.n8n.cloud/webhook/video-approval-response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
       });
 
-      if (uploadResponse.error) {
-        console.error('Upload processing failed:', uploadResponse.error);
-        // Update status to failed
-        await supabase
-          .from('video_ideas')
-          .update({
-            status: 'failed',
-            approval_status: 'failed'
-          })
-          .eq('id', video_idea_id);
+      if (!webhookResponse.ok) {
+        console.error('N8N webhook failed:', await webhookResponse.text());
+        throw new Error('Failed to send video approval to N8N workflow');
       }
 
-      console.log('✅ Upload processing initiated successfully');
+      console.log('✅ Video approval sent to N8N workflow successfully');
 
       return new Response(
         JSON.stringify({ 

@@ -6,6 +6,8 @@ import { VideoIdeaStatusBadge } from "./VideoIdeaStatusBadge";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ExpandableCaption } from "@/components/ExpandableCaption";
+import { UserPlanDisplay } from "@/components/UserPlanDisplay";
 
 interface VideoIdea {
   id: string;
@@ -135,7 +137,16 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
   };
 
   return (
-    <div className="p-4 md:p-6 bg-cool-turquoise overflow-hidden">
+    <div className="p-6 md:p-8 bg-cool-turquoise overflow-hidden border-b border-cool-gray/20">
+      {/* Plan Display and Status Header */}
+      <div className="flex justify-between items-center mb-4">
+        <UserPlanDisplay />
+        <div className="flex gap-2 items-center flex-shrink-0">
+          <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
+            {getStatusDisplay(idea)}
+          </span>
+        </div>
+      </div>
       {/* Inline Approval Buttons */}
       {shouldShowInlineApproval(idea) && (
         <div className="mb-4 flex gap-2 items-center">
@@ -219,15 +230,11 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
         </div>
       )}
 
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start mb-4">
         <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-lg md:text-2xl text-left break-words hyphens-auto leading-tight">
           {idea.idea_text}
         </p>
         <div className="flex gap-2 items-center flex-shrink-0">
-          <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
-            {getStatusDisplay(idea)}
-          </span>
-          
           {/* Preview Button for old approval system */}
           {idea.approval_status === 'preview_ready' && idea.preview_video_url && (
             <Button
@@ -254,7 +261,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-1 mb-2 overflow-hidden">
+      <div className="flex flex-wrap gap-1 mb-4 overflow-hidden">
         {idea.selected_platforms.map((platform) => (
           <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs md:text-sm whitespace-nowrap">
             {platform}
@@ -262,20 +269,22 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
         ))}
       </div>
       
-      {/* Caption preview */}
+      {/* Expandable Caption */}
       {idea.caption && (
-        <div className="mb-2">
-          <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-            <strong>Caption:</strong> {idea.caption.substring(0, 100)}
-            {idea.caption.length > 100 && '...'}
-          </p>
+        <div className="mb-4">
+          <p className="text-sm font-medium text-cool-charcoal mb-2">Caption:</p>
+          <ExpandableCaption 
+            caption={idea.caption} 
+            videoId={idea.id}
+            onUpdate={() => {/* Caption updated, could refresh if needed */}}
+          />
         </div>
       )}
       
       {/* Rejection Reason */}
       {idea.approval_status === 'rejected' && idea.rejected_reason && (
-        <div className="mb-2">
-          <p className="text-xs text-red-600 bg-red-50 p-2 rounded">
+        <div className="mb-4">
+          <p className="text-xs text-red-600 bg-red-50 p-3 rounded">
             <strong className="text-xs text-black">Rejection reason:</strong> {idea.rejected_reason}
           </p>
         </div>
@@ -283,7 +292,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
 
       {/* Video file link */}
       {idea.video_url && (
-        <div className="mb-2">
+        <div className="mb-4">
           <a
             href={idea.video_url}
             target="_blank"
@@ -298,11 +307,11 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
 
       {/* Upload Progress */}
       {idea.upload_status && Object.keys(idea.upload_status).length > 0 && (
-        <div className="mb-3">
+        <div className="mb-4">
           <p className="text-xs text-gray-500 mb-2">Upload Progress:</p>
           <div className="space-y-2">
             {Object.entries(idea.upload_status).map(([platform, status]) => (
-              <div key={platform} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+              <div key={platform} className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded">
                  <span className="capitalize text-cool-charcoal font-medium truncate max-w-[80px] md:max-w-none">{platform}</span>
                  <div className="flex items-center space-x-2 flex-shrink-0">
                    {status === 'uploading' && (
@@ -334,7 +343,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
 
       {/* Platform links */}
       {getPlatformLinks(idea).length > 0 && (
-        <div className="mb-2">
+        <div className="mb-4">
           <p className="text-xs text-gray-500 mb-1">Platform Links:</p>
           <div className="flex flex-wrap gap-2">
             {getPlatformLinks(idea).map((link) => (
