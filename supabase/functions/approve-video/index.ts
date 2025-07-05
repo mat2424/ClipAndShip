@@ -78,8 +78,8 @@ serve(async (req) => {
 
       // Filter platforms based on user tier
       let allowedPlatforms = selected_platforms || videoIdea.selected_platforms;
-      const premiumPlatforms = ['TikTok', 'X', 'LinkedIn'];
-      const proPlatforms = ['Instagram', 'Facebook'];
+      const premiumPlatforms = ['Instagram', 'Facebook', 'Threads'];
+      const proPlatforms = ['TikTok', 'X', 'LinkedIn'];
       
       if (profile.subscription_tier === 'free') {
         const originalCount = allowedPlatforms.length;
