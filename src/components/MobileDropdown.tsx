@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, LogOut, Menu, CreditCard, Settings } from "lucide-react";
+import { User, LogOut, Menu, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreditBalance } from "@/components/CreditBalance";
 import { Link } from "react-router-dom";
@@ -34,13 +34,6 @@ export const MobileDropdown = ({ user, onSignOut }: MobileDropdownProps) => {
         </DropdownMenuLabel>
         
         <DropdownMenuSeparator />
-        
-        <DropdownMenuItem asChild>
-          <Link to="/connect-accounts" className="flex items-center space-x-2">
-            <Settings className="w-4 h-4" />
-            <span>Connect Accounts</span>
-          </Link>
-        </DropdownMenuItem>
         
         <DropdownMenuItem className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

@@ -136,7 +136,7 @@ export const PricingSection = () => {
                   disabled={loading === tier.credits}
                   size="sm"
                   variant={tier.popular ? "default" : "outline"}
-                  className={tier.popular ? "bg-cool-charcoal text-cool-turquoise hover:bg-cool-charcoal/90" : "border-cool-charcoal text-cool-charcoal hover:bg-cool-charcoal/10"}
+                  className={tier.popular ? "bg-cool-charcoal text-white hover:bg-cool-charcoal/90" : "border-cool-charcoal text-white hover:bg-cool-charcoal/10"}
                 >
                   {loading === tier.credits ? "Processing..." : "Buy Now"}
                 </Button>
