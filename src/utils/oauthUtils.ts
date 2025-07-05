@@ -47,6 +47,12 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
 
     console.log(`✅ User authenticated: ${user.id}`);
 
+    // Handle YouTube with direct Google OAuth to edge function
+    if (platform === 'youtube') {
+      console.log('🎬 Using direct YouTube OAuth flow');
+      return await initiateYouTubeOAuth();
+    }
+
     // Handle custom OAuth flows for TikTok and Instagram
     if (platform === 'tiktok' || platform === 'instagram') {
       console.log(`🔀 Using custom OAuth flow for ${platform}`);
@@ -252,6 +258,47 @@ const storePlatformConnection = async (platform: SocialPlatform, userId: string,
     return data;
   } catch (error) {
     console.error('💥 Error storing platform connection:', error);
+    throw error;
+  }
+};
+
+// YouTube OAuth flow that goes directly to our edge function
+const initiateYouTubeOAuth = async () => {
+  try {
+    console.log('🎬 Setting up YouTube OAuth flow');
+    
+    // Generate state for security
+    const state = generateRandomState();
+    localStorage.setItem('youtube_oauth_state', state);
+    
+    // Use Supabase project URL for the edge function
+    const supabaseUrl = "https://djmkzsxsfwyrqmhcgsyx.supabase.co";
+    const redirectUri = `${supabaseUrl}/functions/v1/youtube-oauth`;
+    
+    // Get Google Client ID from your Google Console
+    const clientId = "YOUR_GOOGLE_CLIENT_ID"; // You'll need to replace this
+    
+    if (clientId === "YOUR_GOOGLE_CLIENT_ID") {
+      throw new Error("Google Client ID not configured. Please update the client ID in oauthUtils.ts");
+    }
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${clientId}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=code&` +
+      `scope=${encodeURIComponent('https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube')}&` +
+      `access_type=offline&` +
+      `prompt=consent&` +
+      `state=${state}`;
+    
+    console.log('🚀 Redirecting to YouTube OAuth:', authUrl);
+    
+    // Redirect to Google OAuth
+    window.location.href = authUrl;
+    
+    return { data: null, error: null };
+  } catch (error) {
+    console.error('💥 Error initiating YouTube OAuth:', error);
     throw error;
   }
 };

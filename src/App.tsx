@@ -7,7 +7,7 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-
+import ConnectAccounts from "./pages/ConnectAccounts";
 import OAuthCallback from "./pages/OAuthCallback";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -29,7 +29,7 @@ const App = () => (
           
           
           <Route path="/oauth-callback" element={<OAuthCallback />} />
-          <Route path="/connect-accounts" element={<Index />} />
+          <Route path="/connect-accounts" element={<ConnectAccounts />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/404" element={<NotFound />} />
