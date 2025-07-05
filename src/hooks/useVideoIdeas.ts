@@ -26,6 +26,7 @@ interface VideoIdea {
 export const useVideoIdeas = () => {
   const [videoIdeas, setVideoIdeas] = useState<VideoIdea[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previousVideoIdeas, setPreviousVideoIdeas] = useState<VideoIdea[]>([]);
 
   const fetchVideoIdeas = async () => {
     try {
@@ -54,7 +55,30 @@ export const useVideoIdeas = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setVideoIdeas(data || []);
+      
+      const newVideoIdeas = data || [];
+      
+      // Check for newly completed videos and show success toast
+      if (previousVideoIdeas.length > 0) {
+        newVideoIdeas.forEach(newVideo => {
+          const oldVideo = previousVideoIdeas.find(v => v.id === newVideo.id);
+          if (oldVideo && 
+              oldVideo.status !== 'completed' && 
+              newVideo.status === 'completed' && 
+              newVideo.video_url) {
+            // Import toast dynamically to avoid circular dependency
+            import("@/hooks/use-toast").then(({ toast }) => {
+              toast({
+                title: "🎉 Video Ready!",
+                description: `Your video "${newVideo.idea_text.substring(0, 50)}..." has been generated successfully!`,
+              });
+            });
+          }
+        });
+      }
+      
+      setPreviousVideoIdeas([...newVideoIdeas]);
+      setVideoIdeas(newVideoIdeas);
     } catch (error) {
       console.error('Error fetching video ideas:', error);
     } finally {

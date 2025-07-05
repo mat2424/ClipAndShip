@@ -68,7 +68,8 @@ export const PlatformSelector = ({
 
   return (
     <div>
-      <Label>Select Platforms *</Label>
+      <Label>Select Platforms (Optional)</Label>
+      <p className="text-sm text-cool-gray mt-1 mb-2">Choose platforms to publish to, or leave empty to generate video only</p>
       <div className="grid grid-cols-2 gap-2 mt-2">
         {PLATFORMS.map(platform => {
           const isLocked = !canSelectPlatform(platform);

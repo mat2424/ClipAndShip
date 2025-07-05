@@ -68,10 +68,10 @@ export const useVideoIdeaForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ideaText.trim() || selectedPlatforms.length === 0) {
+    if (!ideaText.trim()) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields and select at least one platform.",
+        description: "Please enter a video idea.",
         variant: "destructive",
       });
       return;
@@ -129,7 +129,7 @@ export const useVideoIdeaForm = () => {
           phase: 'preview',
           video_idea_id: videoIdea.id, // Pass the UUID
           video_idea: ideaText,
-          selected_platforms: selectedPlatforms,
+          selected_platforms: selectedPlatforms.length > 0 ? selectedPlatforms : [], // Handle empty platforms
           use_ai_voice: !useCustomVoice // Invert the logic
         }
       });

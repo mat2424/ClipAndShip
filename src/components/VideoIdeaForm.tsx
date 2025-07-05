@@ -52,7 +52,7 @@ export const VideoIdeaForm = () => {
 
         <Button 
           type="submit" 
-          disabled={loading || !ideaText.trim() || selectedPlatforms.length === 0} 
+          disabled={loading || !ideaText.trim()} 
           className="w-full bg-cool-aqua hover:bg-cool-aqua-hover text-cool-charcoal font-medium"
         >
           {loading ? "Generating..." : (
@@ -68,7 +68,7 @@ export const VideoIdeaForm = () => {
       <div className="mt-4 p-3 bg-cool-sky/10 border border-cool-sky/30 rounded-lg">
         <p className="text-sm text-cool-sky">
           <strong>Simple Workflow:</strong> We'll generate a preview video for your review. 
-          You can download and share it on your preferred platforms.
+          Optionally select platforms to publish to, or just generate the video for download.
         </p>
       </div>
     </div>
