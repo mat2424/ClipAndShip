@@ -2,26 +2,23 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Crown, Star, Zap } from "lucide-react";
-
 export const UserPlanDisplay = () => {
   const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetchUserPlan();
   }, []);
-
   const fetchUserPlan = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user
+        }
+      } = await supabase.auth.getUser();
       if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_tier')
-        .eq('id', user.id)
-        .single();
-
+      const {
+        data: profile
+      } = await supabase.from('profiles').select('subscription_tier').eq('id', user.id).single();
       if (profile) {
         setPlan(profile.subscription_tier);
       }
@@ -31,9 +28,7 @@ export const UserPlanDisplay = () => {
       setLoading(false);
     }
   };
-
   if (loading) return null;
-
   const getPlanConfig = (planType: string) => {
     switch (planType) {
       case 'pro':
@@ -59,13 +54,9 @@ export const UserPlanDisplay = () => {
         };
     }
   };
-
   const config = getPlanConfig(plan);
-
-  return (
-    <Badge variant={config.variant} className={`flex items-center gap-1 ${config.className}`}>
+  return <Badge variant={config.variant} className="mx-0 py-[10px] px-[10px] rounded-none">
       {config.icon}
       {config.label}
-    </Badge>
-  );
+    </Badge>;
 };
