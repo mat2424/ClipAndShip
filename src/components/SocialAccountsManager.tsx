@@ -120,7 +120,7 @@ export const SocialAccountsManager = () => {
     <div className="space-y-6">
 
       {/* Available Platforms */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{/* Changed to remove justify-items-center to fix alignment */}
         {platforms.map((platformConfig) => (
           <SocialPlatformButton
             key={platformConfig.platform}

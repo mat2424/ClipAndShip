@@ -167,7 +167,7 @@ export const PricingSection = () => {
                   {tier.features.map((feature, index) => (
                     <li key={index} className="flex items-center space-x-2">
                       <span className="text-green-600">✓</span>
-                      <span className="text-xs text-cool-charcoal">{feature}</span>
+                      <span className="text-xs text-white">{feature}</span>
                     </li>
                   ))}
                 </ul>
