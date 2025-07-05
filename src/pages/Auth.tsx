@@ -80,9 +80,16 @@ const Auth = () => {
           <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
             ← Back to home
           </Link>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
-            Clip & Ship
-          </h2>
+          <div className="mt-6 flex flex-col items-center">
+            <img 
+              src="/lovable-uploads/88c8ed88-b99f-419e-9019-00e0231ea9b9.png" 
+              alt="Clip & Ship AI Logo" 
+              className="w-20 h-20 mb-4"
+            />
+            <h2 className="text-center text-3xl font-extrabold text-foreground">
+              Clip & Ship
+            </h2>
+          </div>
           <p className="mt-2 text-center text-sm text-muted-foreground">
             {isSignUp ? "Create your account" : "Sign in to your account"}
           </p>
