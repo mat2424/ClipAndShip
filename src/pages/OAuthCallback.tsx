@@ -57,7 +57,7 @@ const OAuthCallback = () => {
             variant: "destructive",
           });
           
-        setTimeout(() => navigate("/app"), 2000);
+        setTimeout(() => navigate("/connect-accounts"), 2000);
           return;
         }
         
@@ -160,7 +160,7 @@ const OAuthCallback = () => {
           // Clear the URL hash to prevent reprocessing
           window.history.replaceState({}, document.title, window.location.pathname);
           
-          setTimeout(() => navigate("/app"), 1000);
+          setTimeout(() => navigate("/connect-accounts"), 1000);
           return;
         }
         
@@ -175,7 +175,7 @@ const OAuthCallback = () => {
             description: `Successfully connected your ${result.platform} account.`,
           });
           
-          navigate("/app");
+          navigate("/connect-accounts");
           return;
         }
         
@@ -202,7 +202,7 @@ const OAuthCallback = () => {
           variant: "destructive",
         });
         
-        setTimeout(() => navigate("/app"), 2000);
+        setTimeout(() => navigate("/connect-accounts"), 2000);
       } finally {
         setProcessing(false);
       }
