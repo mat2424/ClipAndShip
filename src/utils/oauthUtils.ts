@@ -276,7 +276,7 @@ const initiateYouTubeOAuth = async () => {
     const redirectUri = `${supabaseUrl}/functions/v1/youtube-oauth`;
     
     // Get Google Client ID from your Google Console
-    const clientId = "YOUR_GOOGLE_CLIENT_ID"; // You'll need to replace this
+    const clientId = "625393252683-l6bab9ak4c3hcvtes14g3hfl3sr3oojf.apps.googleusercontent.com"; // You'll need to replace this
     
     if (clientId === "YOUR_GOOGLE_CLIENT_ID") {
       throw new Error("Google Client ID not configured. Please update the client ID in oauthUtils.ts");
