@@ -15,8 +15,8 @@ const platforms: { platform: SocialPlatform; name: string; color: string; icon: 
   { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/ddef2800-d5db-4e6d-8e87-e8d228c761a1.png", customFlow: true, tier: "premium" },
   { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "/lovable-uploads/60a3a2a1-4e39-46b3-8d72-382997a7b692.png", customFlow: true, tier: "premium" },
   { platform: "threads", name: "Threads", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/6d56ef0c-fbdd-4dd5-926d-5913714d348a.png", customFlow: true, tier: "premium" },
-  { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "/lovable-uploads/e602472a-fd56-45af-9504-e325e09c74f3.png", locked: true, tier: "pro" },
-  { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "/lovable-uploads/34be507c-e645-4c1e-bbb1-b9a922babca0.png", locked: true, tier: "pro" },
+  { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "/lovable-uploads/e602472a-fd56-45af-9504-e325e09c74f3.png", customFlow: true, tier: "pro" },
+  { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "/lovable-uploads/34be507c-e645-4c1e-bbb1-b9a922babca0.png", customFlow: true, tier: "pro" },
   { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/bab6eff1-1fa1-4a04-b442-3d1c40472cef.png", customFlow: true, tier: "pro" },
 ];
 
@@ -78,15 +78,6 @@ export const SocialAccountsManager = () => {
       return;
     }
     
-    if (platformConfig?.locked) {
-      console.log(`🔒 Platform ${platform} is locked`);
-      toast({
-        title: "Coming Soon",
-        description: `${platformConfig.name} integration is coming soon! Stay tuned for updates.`,
-        variant: "default",
-      });
-      return;
-    }
 
     setIsConnecting(platform);
     
