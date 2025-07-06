@@ -13,8 +13,34 @@ serve(async (req) => {
   }
 
   try {
+    // Enhanced environment variable checking
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const googleClientId = Deno.env.get('GOOGLE_CLIENT_ID');
+    const googleClientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+
+    console.log('🔧 Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasGoogleClientId: !!googleClientId,
+      hasGoogleClientSecret: !!googleClientSecret,
+      supabaseUrl: supabaseUrl?.substring(0, 30) + '...',
+    });
+
+    if (!supabaseUrl || !googleClientId || !googleClientSecret) {
+      console.error('❌ Missing required environment variables');
+      return new Response(
+        JSON.stringify({ 
+          error: 'OAuth configuration incomplete',
+          details: 'Missing required Google OAuth credentials'
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
+      supabaseUrl,
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
@@ -42,38 +68,30 @@ serve(async (req) => {
 
     console.log('🚀 Initiating YouTube OAuth for user:', user.id);
 
-    // Generate state parameter with user ID for security
-    const state = `${user.id}-${Math.random().toString(36).substring(2, 15)}`;
+    // Generate state parameter with user ID for security and timestamp
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const state = `${user.id}-${timestamp}-${randomString}`;
     
-    // Build the OAuth URL
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/youtube-oauth`;
-    const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+    // Build the OAuth URL - ensure exact match with what we'll use in token exchange
+    const redirectUri = `${supabaseUrl}/functions/v1/youtube-oauth`;
     
-    if (!clientId) {
-      console.error('❌ Google Client ID not configured');
-      return new Response(
-        JSON.stringify({ error: 'Google OAuth not properly configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
     const scopes = 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube';
     
     const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
-      `client_id=${clientId}&` +
+      `client_id=${encodeURIComponent(googleClientId)}&` +
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `scope=${encodeURIComponent(scopes)}&` +
       `response_type=code&` +
       `access_type=offline&` +
       `prompt=consent&` +
-      `state=${state}`;
+      `state=${encodeURIComponent(state)}`;
 
-    console.log('🔗 Redirecting to Google OAuth:', {
+    console.log('🔗 Generated OAuth URL:', {
       redirectUri,
-      state: state.substring(0, 20) + '...',
+      clientId: googleClientId.substring(0, 20) + '...',
+      state: state.substring(0, 30) + '...',
+      fullAuthUrl: authUrl.substring(0, 150) + '...',
     });
 
     // Return the OAuth URL instead of redirecting
