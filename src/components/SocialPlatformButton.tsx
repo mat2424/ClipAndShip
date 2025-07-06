@@ -53,7 +53,7 @@ export const SocialPlatformButton = ({
         onClick={onConnect} 
         disabled={isConnected || isConnecting || isPremiumRequired || isLocked}
         variant="outline"
-        className="w-full h-20 bg-card hover:bg-accent border-border hover:border-accent-foreground/20 transition-all duration-200 p-3"
+        className="w-full h-20 bg-card hover:bg-accent transition-all duration-200 p-3"
       >
         <div className="flex flex-col items-center justify-center space-y-2 w-full h-full">
           {/* Icon Section */}

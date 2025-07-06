@@ -68,8 +68,8 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
     const provider = platformProviderMap[platform];
     const scopes = platformScopes[platform];
 
-    // Use the current origin for redirect
-    const redirectTo = `${window.location.origin}/#/oauth-callback`;
+    // Use the actual domain for redirect instead of preview URL
+    const redirectTo = `https://clipandship.ca/#/oauth-callback`;
 
     console.log(`🔗 OAuth config:`, {
       provider,
@@ -114,7 +114,7 @@ const initiateCustomOAuth = async (platform: 'tiktok' | 'instagram') => {
     // Store state in localStorage for verification later
     localStorage.setItem(`${platform}_oauth_state`, state);
     
-    const redirectUri = `${window.location.origin}/#/oauth-callback`;
+    const redirectUri = `https://clipandship.ca/#/oauth-callback`;
     
     let authUrl = '';
     
@@ -267,8 +267,8 @@ const initiateYouTubeOAuth = async () => {
   try {
     console.log('🎬 Setting up YouTube OAuth flow with Supabase');
     
-    // Use the current origin for redirect
-    const redirectTo = `${window.location.origin}/#/oauth-callback`;
+    // Use the actual domain for redirect instead of preview URL
+    const redirectTo = `https://clipandship.ca/#/oauth-callback`;
     
     console.log('🔗 YouTube OAuth config:', {
       redirectTo,
