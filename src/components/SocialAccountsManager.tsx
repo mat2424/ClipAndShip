@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { SocialPlatformButton } from "./SocialPlatformButton";
 import { ConnectedAccountCard } from "./ConnectedAccountCard";
+import { YouTubeConnector } from "./YouTubeConnector";
 import { useSocialTokens } from "@/hooks/useSocialTokens";
 import { initiateOAuth } from "@/utils/oauthUtils";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +87,12 @@ export const SocialAccountsManager = () => {
     
     console.log(`🎯 User clicked connect for: ${platform}`);
     
+    // YouTube uses the new dedicated system
+    if (platform === 'youtube') {
+      console.log('🎬 YouTube uses dedicated connector, skipping generic handler');
+      return;
+    }
+    
     // Check if platform requires pro tier
     if (platformConfig?.tier === 'pro' && (userTier === 'free' || userTier === 'premium')) {
       console.log(`🔒 Platform ${platform} requires pro tier`);
@@ -141,10 +148,12 @@ export const SocialAccountsManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* YouTube Dedicated Connector */}
+      <YouTubeConnector />
 
       {/* Available Platforms */}
       <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">{/* Clean 4x2 grid: 2 columns, 4 rows */}
-        {platforms.map((platformConfig) => (
+        {platforms.filter(p => p.platform !== 'youtube').map((platformConfig) => (
           <SocialPlatformButton
             key={platformConfig.platform}
             platform={platformConfig.platform}

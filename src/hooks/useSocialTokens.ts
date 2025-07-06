@@ -19,11 +19,41 @@ export const useSocialTokens = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('social_tokens')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Fetch both social tokens and YouTube tokens
+      const [socialTokensResponse, youtubeTokensResponse] = await Promise.all([
+        supabase
+          .from('social_tokens')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('youtube_tokens')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      const socialTokens = socialTokensResponse.data || [];
+      const youtubeTokens = youtubeTokensResponse.data || [];
+
+      // Convert YouTube tokens to social token format for compatibility
+      const convertedYoutubeTokens = youtubeTokens.map(token => ({
+        id: token.id,
+        user_id: token.user_id,
+        platform: 'youtube' as const,
+        access_token: token.access_token,
+        refresh_token: token.refresh_token,
+        expires_at: token.expires_at,
+        username: token.channel_name,
+        created_at: token.created_at,
+        updated_at: token.updated_at
+      }));
+
+      // Combine both token types, excluding YouTube from social_tokens to avoid duplicates
+      const filteredSocialTokens = socialTokens.filter(token => token.platform !== 'youtube');
+      const allTokens = [...filteredSocialTokens, ...convertedYoutubeTokens];
+
+      const { data, error } = { data: allTokens, error: socialTokensResponse.error || youtubeTokensResponse.error };
 
       if (error) {
         console.error('Error fetching social tokens:', error);

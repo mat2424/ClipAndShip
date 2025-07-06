@@ -284,8 +284,8 @@ const initiateYouTubeOAuth = async () => {
     
     console.log('✅ Session obtained, calling edge function...');
     
-    // Call the YouTube OAuth initiation edge function
-    const functionUrl = `https://djmkzsxsfwyrqmhcgsyx.supabase.co/functions/v1/youtube-oauth-initiate`;
+    // Call the YouTube OAuth setup edge function
+    const functionUrl = `https://djmkzsxsfwyrqmhcgsyx.supabase.co/functions/v1/youtube-oauth-setup`;
     console.log('🔗 Calling:', functionUrl);
     
     const response = await fetch(functionUrl, {

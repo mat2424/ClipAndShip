@@ -123,19 +123,21 @@ const OAuthCallback = () => {
             console.log('📺 YouTube channel name:', channelName);
             
             // Store the YouTube connection in our database with verified token and channel name
+            // Use the new dedicated youtube_tokens table for YouTube connections
             const { data, error: dbError } = await supabase
-              .from('social_tokens')
+              .from('youtube_tokens')
               .upsert(
                 {
                   user_id: user.id,
-                  platform: 'youtube',
                   access_token: providerToken, // Store the provider token for YouTube API calls
-                  refresh_token: refreshToken,
-                  expires_at: expirationDate,
-                  username: channelName, // Store the YouTube channel name
+                  refresh_token: refreshToken || '',
+                  expires_at: expirationDate || new Date(Date.now() + 3600000).toISOString(), // Default 1 hour if no expiry
+                  channel_name: channelName, // Store the YouTube channel name
+                  token_type: 'Bearer',
+                  scope: 'https://www.googleapis.com/auth/youtube.upload'
                 },
                 {
-                  onConflict: 'user_id,platform'
+                  onConflict: 'user_id'
                 }
               )
               .select()
