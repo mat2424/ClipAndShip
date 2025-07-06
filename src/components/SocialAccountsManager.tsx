@@ -30,6 +30,36 @@ export const SocialAccountsManager = () => {
     fetchUserTier();
     // Refresh accounts when component mounts to catch newly connected accounts
     refreshAccounts();
+    
+    // Check if we just returned from YouTube OAuth
+    const checkYouTubeCallback = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const youtubeConnected = urlParams.get('youtube');
+      const hasYouTubeState = localStorage.getItem('youtube_oauth_initiated');
+      
+      if (youtubeConnected === 'connected' || hasYouTubeState) {
+        console.log('🎉 Detected YouTube OAuth completion, refreshing accounts...');
+        localStorage.removeItem('youtube_oauth_initiated');
+        localStorage.removeItem('youtube_oauth_timestamp');
+        
+        // Clear the URL parameters
+        const url = new URL(window.location.href);
+        url.searchParams.delete('youtube');
+        url.searchParams.delete('timestamp');
+        window.history.replaceState({}, '', url.toString());
+        
+        // Refresh accounts after a short delay to allow for database updates
+        setTimeout(() => {
+          refreshAccounts();
+          toast({
+            title: "Success!",
+            description: "YouTube account connected successfully.",
+          });
+        }, 1000);
+      }
+    };
+    
+    checkYouTubeCallback();
   }, []);
 
   const fetchUserTier = async () => {

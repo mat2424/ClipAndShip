@@ -350,11 +350,36 @@ serve(async (req) => {
     
     console.log(`🎉 [${requestId}] OAuth flow completed successfully, redirecting to:`, redirectUrl);
     
-    return new Response(null, {
-      status: 302,
+    // Return HTML page that automatically redirects and refreshes parent
+    const redirectHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>YouTube Connected Successfully</title>
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            .success { color: #10b981; font-size: 18px; margin-bottom: 20px; }
+            .loading { color: #6b7280; }
+          </style>
+        </head>
+        <body>
+          <div class="success">✅ YouTube account connected successfully!</div>
+          <div class="loading">Redirecting you back to the app...</div>
+          <script>
+            console.log('YouTube OAuth success, redirecting...');
+            setTimeout(() => {
+              window.location.href = '${redirectUrl}';
+            }, 2000);
+          </script>
+        </body>
+      </html>
+    `;
+    
+    return new Response(redirectHtml, {
+      status: 200,
       headers: {
         ...corsHeaders,
-        'Location': redirectUrl,
+        'Content-Type': 'text/html',
       },
     });
 

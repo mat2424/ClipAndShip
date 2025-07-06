@@ -316,6 +316,11 @@ const initiateYouTubeOAuth = async () => {
     
     if (responseData.authUrl) {
       console.log('🚀 Redirecting to Google OAuth:', responseData.authUrl);
+      
+      // Store a flag to know we initiated YouTube OAuth
+      localStorage.setItem('youtube_oauth_initiated', 'true');
+      localStorage.setItem('youtube_oauth_timestamp', Date.now().toString());
+      
       window.location.href = responseData.authUrl;
       return { data: null, error: null };
     } else {
