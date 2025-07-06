@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export const HeroSection = () => {
   const handleWatchDemo = () => {
-    window.open("https://youtu.be/s0IcASiuR4o", "_blank");
+    window.open("https://youtu.be/Reg6D9ge3Dw", "_blank");
   };
 
   return (
