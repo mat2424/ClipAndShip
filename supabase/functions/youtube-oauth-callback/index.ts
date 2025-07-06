@@ -1,0 +1,263 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
+  const requestId = crypto.randomUUID().substring(0, 8);
+  
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const googleClientId = Deno.env.get('GOOGLE_CLIENT_ID');
+    const googleClientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+
+    if (!supabaseUrl || !supabaseServiceKey || !googleClientId || !googleClientSecret) {
+      throw new Error('Missing required environment variables');
+    }
+
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, { 
+      auth: { persistSession: false } 
+    });
+
+    const { searchParams } = new URL(req.url);
+    const authCode = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+
+    console.log(`📋 [${requestId}] OAuth callback received`, {
+      hasCode: !!authCode,
+      hasState: !!state,
+      error: error,
+    });
+
+    if (error) {
+      throw new Error(`OAuth error: ${error}`);
+    }
+
+    if (!authCode || !state) {
+      throw new Error('Missing required OAuth parameters');
+    }
+
+    // Extract and validate user ID from state
+    const [userId, timestamp] = state.split('-');
+    if (!userId || !timestamp) {
+      throw new Error('Invalid state parameter');
+    }
+
+    // Check state age (max 30 minutes)
+    const stateAge = Date.now() - parseInt(timestamp);
+    if (stateAge > 30 * 60 * 1000) {
+      throw new Error('OAuth session expired');
+    }
+
+    console.log(`🔄 [${requestId}] Processing OAuth for user: ${userId}`);
+
+    // Exchange authorization code for tokens
+    const redirectUri = `${supabaseUrl}/functions/v1/youtube-oauth-callback`;
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+      body: new URLSearchParams({
+        code: authCode,
+        client_id: googleClientId,
+        client_secret: googleClientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      console.error(`❌ [${requestId}] Token exchange failed:`, errorText);
+      throw new Error(`Token exchange failed: ${errorText}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    
+    if (!tokenData.access_token || !tokenData.refresh_token) {
+      throw new Error('Incomplete token response from Google');
+    }
+
+    console.log(`✅ [${requestId}] Tokens received successfully`);
+
+    // Verify access token with YouTube API
+    const channelResponse = await fetch(
+      'https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true',
+      {
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Accept': 'application/json',
+        },
+      }
+    );
+
+    let channelName = 'YouTube Channel';
+    if (channelResponse.ok) {
+      const channelData = await channelResponse.json();
+      channelName = channelData.items?.[0]?.snippet?.title || 'YouTube Channel';
+      console.log(`📺 [${requestId}] Channel verified: ${channelName}`);
+    }
+
+    // Calculate token expiration
+    const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();
+
+    // Store tokens securely in database
+    const { data: savedToken, error: dbError } = await supabaseClient
+      .from('youtube_tokens')
+      .upsert({
+        user_id: userId,
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+        expires_at: expiresAt,
+        channel_name: channelName,
+        token_type: tokenData.token_type || 'Bearer',
+        scope: tokenData.scope || 'https://www.googleapis.com/auth/youtube.upload'
+      }, {
+        onConflict: 'user_id'
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error(`❌ [${requestId}] Database error:`, dbError);
+      throw new Error(`Failed to save tokens: ${dbError.message}`);
+    }
+
+    console.log(`✅ [${requestId}] YouTube connection saved for user ${userId}`);
+
+    // Return success page
+    const successHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>YouTube Connected Successfully</title>
+          <style>
+            body { 
+              font-family: system-ui, sans-serif; 
+              text-align: center; 
+              padding: 60px 20px;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              min-height: 100vh;
+              margin: 0;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            .container {
+              max-width: 400px;
+              margin: 0 auto;
+              background: rgba(255,255,255,0.1);
+              padding: 40px;
+              border-radius: 12px;
+              backdrop-filter: blur(10px);
+            }
+            .success-icon { font-size: 48px; margin-bottom: 20px; }
+            .title { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
+            .subtitle { font-size: 16px; opacity: 0.9; margin-bottom: 30px; }
+            .loading { font-size: 14px; opacity: 0.8; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="success-icon">✅</div>
+            <div class="title">YouTube Connected!</div>
+            <div class="subtitle">Channel: ${channelName}</div>
+            <div class="loading">Redirecting you back to the app...</div>
+          </div>
+          <script>
+            setTimeout(() => {
+              if (window.opener) {
+                window.opener.postMessage({ type: 'YOUTUBE_AUTH_SUCCESS' }, '*');
+                window.close();
+              } else {
+                window.location.href = '${req.headers.get('origin') || 'https://clipandship.ca'}';
+              }
+            }, 2000);
+          </script>
+        </body>
+      </html>
+    `;
+
+    return new Response(successHtml, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html',
+      },
+    });
+
+  } catch (error) {
+    console.error(`💥 [${requestId}] OAuth callback error:`, error);
+    
+    const errorHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>YouTube Connection Failed</title>
+          <style>
+            body { 
+              font-family: system-ui, sans-serif; 
+              text-align: center; 
+              padding: 60px 20px;
+              background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+              color: white;
+              min-height: 100vh;
+              margin: 0;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            .container {
+              max-width: 400px;
+              margin: 0 auto;
+              background: rgba(255,255,255,0.1);
+              padding: 40px;
+              border-radius: 12px;
+              backdrop-filter: blur(10px);
+            }
+            .error-icon { font-size: 48px; margin-bottom: 20px; }
+            .title { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
+            .subtitle { font-size: 16px; opacity: 0.9; margin-bottom: 30px; }
+            .retry-btn { 
+              background: rgba(255,255,255,0.2); 
+              border: none; 
+              color: white; 
+              padding: 12px 24px; 
+              border-radius: 6px; 
+              cursor: pointer;
+              font-size: 14px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="error-icon">❌</div>
+            <div class="title">Connection Failed</div>
+            <div class="subtitle">${error instanceof Error ? error.message : 'Unknown error'}</div>
+            <button class="retry-btn" onclick="window.close()">Close Window</button>
+          </div>
+        </body>
+      </html>
+    `;
+
+    return new Response(errorHtml, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/html',
+      },
+    });
+  }
+});
