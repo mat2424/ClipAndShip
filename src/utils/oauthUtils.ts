@@ -262,41 +262,44 @@ const storePlatformConnection = async (platform: SocialPlatform, userId: string,
   }
 };
 
-  // YouTube OAuth flow using Supabase's built-in Google OAuth
+// YouTube OAuth flow using edge function for proper authentication
 const initiateYouTubeOAuth = async () => {
   try {
-    console.log('🎬 Setting up YouTube OAuth flow with Supabase');
+    console.log('🎬 Starting YouTube OAuth flow via edge function');
     
-    // Use the actual domain for redirect instead of preview URL
-    const redirectTo = `https://clipandship.ca/#/oauth-callback`;
+    // Get the current user's session token
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    console.log('🔗 YouTube OAuth config:', {
-      redirectTo,
-      scopes: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
-      currentUrl: window.location.href
-    });
-
-    // Use Supabase's built-in Google OAuth with YouTube scopes
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectTo,
-        scopes: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
-        queryParams: {
-          platform: 'youtube',
-          access_type: 'offline',
-          prompt: 'consent'
-        }
-      }
-    });
-
-    if (error) {
-      console.error('❌ YouTube OAuth initiation failed:', error);
-      throw error;
+    if (sessionError || !session) {
+      throw new Error('User not authenticated');
     }
-
-    console.log('✅ YouTube OAuth initiated successfully:', data);
-    return data;
+    
+    // Call the YouTube OAuth initiation edge function
+    const response = await fetch(`https://djmkzsxsfwyrqmhcgsyx.supabase.co/functions/v1/youtube-oauth-initiate`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqbWt6c3hzZnd5cnFtaGNnc3l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3MTg1MzAsImV4cCI6MjA2NjI5NDUzMH0.XWySAzBoatcmBUQFxugMX2MsRauACoSeJssgGQJBC-k',
+      },
+    });
+    
+    if (response.status === 302) {
+      // The edge function returned a redirect, follow it
+      const location = response.headers.get('Location');
+      if (location) {
+        console.log('🚀 Redirecting to Google OAuth');
+        window.location.href = location;
+        return { data: null, error: null };
+      }
+    }
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to initiate OAuth');
+    }
+    
+    console.log('✅ YouTube OAuth initiated successfully');
+    return { data: null, error: null };
   } catch (error) {
     console.error('💥 Error initiating YouTube OAuth:', error);
     throw error;

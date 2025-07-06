@@ -15,30 +15,9 @@ serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
     );
-
-    // Get the current user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !user) {
-      console.error('❌ User authentication failed:', userError);
-      return new Response(
-        JSON.stringify({ error: 'User not authenticated' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
 
     const { searchParams } = new URL(req.url);
     const authCode = searchParams.get('code');
@@ -55,7 +34,31 @@ serve(async (req) => {
       );
     }
 
-    console.log('🔄 Processing YouTube OAuth with code:', authCode.substring(0, 10) + '...');
+    if (!state) {
+      console.error('❌ No state parameter provided');
+      return new Response(
+        JSON.stringify({ error: 'No state parameter provided' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Extract user ID from state (format: userId-randomString)
+    const userId = state.split('-')[0];
+    if (!userId) {
+      console.error('❌ Invalid state parameter');
+      return new Response(
+        JSON.stringify({ error: 'Invalid state parameter' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('🔄 Processing YouTube OAuth for user:', userId, 'with code:', authCode.substring(0, 10) + '...');
 
     // Exchange authorization code for access token
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -124,7 +127,7 @@ serve(async (req) => {
       .from('social_tokens')
       .upsert(
         {
-          user_id: user.id,
+          user_id: userId,
           platform: 'youtube',
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token || null,
@@ -151,8 +154,8 @@ serve(async (req) => {
 
     console.log('✅ YouTube connection saved successfully');
 
-    // Redirect to connect-accounts page
-    const redirectUrl = `${new URL(req.url).origin.replace('.supabase.co', '')}/connect-accounts?youtube=connected`;
+    // Redirect to app page on the main domain
+    const redirectUrl = `https://clipandship.ca/#/app?youtube=connected`;
     
     return new Response(null, {
       status: 302,
