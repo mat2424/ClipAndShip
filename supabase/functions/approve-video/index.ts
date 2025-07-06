@@ -127,10 +127,20 @@ serve(async (req) => {
         }
       };
 
-      console.log('Sending video approval data to N8N webhook:', webhookData);
+      console.log('Sending video approval data to test webhook:', webhookData);
 
-      // Send to N8N webhook
-      const webhookResponse = await fetch('https://clipandship.app.n8n.cloud/webhook/video-approval-response', {
+      // Get the test webhook URL from secrets
+      const testWebhookUrl = Deno.env.get('Test-Approval-Response-Webhook');
+      
+      if (!testWebhookUrl) {
+        console.error('❌ Test-Approval-Response-Webhook not configured in secrets');
+        throw new Error('Test webhook URL not configured');
+      }
+
+      console.log('🔗 Using test webhook URL:', testWebhookUrl);
+
+      // Send to test webhook
+      const webhookResponse = await fetch(testWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,16 +149,16 @@ serve(async (req) => {
       });
 
       if (!webhookResponse.ok) {
-        console.error('N8N webhook failed:', await webhookResponse.text());
-        throw new Error('Failed to send video approval to N8N workflow');
+        console.error('Test webhook failed:', await webhookResponse.text());
+        throw new Error('Failed to send video approval to test webhook');
       }
 
-      console.log('✅ Video approval sent to N8N workflow successfully');
+      console.log('✅ Video approval sent to test webhook successfully');
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Video approved and sent to n8n workflow for publishing' 
+          message: 'Video approved and sent to test webhook for processing' 
         }),
         { 
           status: 200, 
