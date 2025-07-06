@@ -28,6 +28,8 @@ export const SocialAccountsManager = () => {
 
   useEffect(() => {
     fetchUserTier();
+    // Refresh accounts when component mounts to catch newly connected accounts
+    refreshAccounts();
   }, []);
 
   const fetchUserTier = async () => {

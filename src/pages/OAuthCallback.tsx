@@ -57,7 +57,7 @@ const OAuthCallback = () => {
             variant: "destructive",
           });
           
-        setTimeout(() => navigate("/connect-accounts"), 2000);
+        setTimeout(() => navigate("/app"), 2000);
           return;
         }
         
@@ -152,15 +152,17 @@ const OAuthCallback = () => {
               title: "Success!",
               description: "Successfully connected your YouTube account with upload permissions.",
             });
+            
+            // Clear the URL hash to prevent reprocessing
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Redirect to /app instead of /connect-accounts so user can immediately use their connected account
+            console.log('🚀 Redirecting to /app for immediate use');
+            setTimeout(() => navigate("/app"), 1000);
           } else {
             console.error('❌ No authenticated user found');
             throw new Error('No authenticated user found');
           }
-          
-          // Clear the URL hash to prevent reprocessing
-          window.history.replaceState({}, document.title, window.location.pathname);
-          
-          setTimeout(() => navigate("/connect-accounts"), 1000);
           return;
         }
         
@@ -175,13 +177,14 @@ const OAuthCallback = () => {
             description: `Successfully connected your ${result.platform} account.`,
           });
           
-          navigate("/connect-accounts");
+          // Redirect to /app for immediate use
+          navigate("/app");
           return;
         }
         
         // No OAuth parameters found
-        console.log('⚠️ No OAuth parameters found, redirecting to connect accounts');
-        navigate("/connect-accounts");
+        console.log('⚠️ No OAuth parameters found, redirecting to app');
+        navigate("/app");
         
       } catch (error) {
         console.error("💥 OAuth callback error:", error);
@@ -202,7 +205,7 @@ const OAuthCallback = () => {
           variant: "destructive",
         });
         
-        setTimeout(() => navigate("/connect-accounts"), 2000);
+        setTimeout(() => navigate("/app"), 2000);
       } finally {
         setProcessing(false);
       }
