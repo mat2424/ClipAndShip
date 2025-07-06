@@ -109,9 +109,9 @@ serve(async (req) => {
       );
     }
 
-    // Check if the state is not too old (15 minutes max)
-    if (timestamp && Date.now() - timestamp > 15 * 60 * 1000) {
-      console.error(`❌ [${requestId}] OAuth state expired`);
+    // Check if the state is not too old (30 minutes max)
+    if (timestamp && Date.now() - timestamp > 30 * 60 * 1000) {
+      console.error(`❌ [${requestId}] OAuth state expired. Current time: ${Date.now()}, State timestamp: ${timestamp}, Age: ${(Date.now() - timestamp) / 1000 / 60} minutes`);
       return new Response(
         JSON.stringify({ error: 'OAuth session expired, please try again' }),
         { 
