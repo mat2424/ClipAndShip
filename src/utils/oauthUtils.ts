@@ -278,11 +278,17 @@ const initiateYouTubeOAuth = async () => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError || !session) {
+      console.error('❌ Session error:', sessionError);
       throw new Error('User not authenticated');
     }
     
+    console.log('✅ Session obtained, calling edge function...');
+    
     // Call the YouTube OAuth initiation edge function
-    const response = await fetch(`https://djmkzsxsfwyrqmhcgsyx.supabase.co/functions/v1/youtube-oauth-initiate`, {
+    const functionUrl = `https://djmkzsxsfwyrqmhcgsyx.supabase.co/functions/v1/youtube-oauth-initiate`;
+    console.log('🔗 Calling:', functionUrl);
+    
+    const response = await fetch(functionUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
@@ -290,25 +296,38 @@ const initiateYouTubeOAuth = async () => {
       },
     });
     
-    if (response.status === 302) {
-      // The edge function returned a redirect, follow it
-      const location = response.headers.get('Location');
-      if (location) {
-        console.log('🚀 Redirecting to Google OAuth');
-        window.location.href = location;
-        return { data: null, error: null };
-      }
-    }
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to initiate OAuth');
+      const responseText = await response.text();
+      console.error('❌ Edge function error response:', responseText);
+      let errorData;
+      try {
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = { error: responseText };
+      }
+      throw new Error(errorData.error || `Edge function failed with status ${response.status}`);
     }
     
-    console.log('✅ YouTube OAuth initiated successfully');
-    return { data: null, error: null };
+    const responseData = await response.json();
+    console.log('✅ YouTube OAuth response:', responseData);
+    
+    if (responseData.authUrl) {
+      console.log('🚀 Redirecting to Google OAuth:', responseData.authUrl);
+      window.location.href = responseData.authUrl;
+      return { data: null, error: null };
+    } else {
+      throw new Error('No OAuth URL returned from edge function');
+    }
   } catch (error) {
     console.error('💥 Error initiating YouTube OAuth:', error);
+    console.error('💥 Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 };

@@ -76,14 +76,20 @@ serve(async (req) => {
       state: state.substring(0, 20) + '...',
     });
 
-    // Redirect to Google OAuth
-    return new Response(null, {
-      status: 302,
-      headers: {
-        ...corsHeaders,
-        'Location': authUrl,
-      },
-    });
+    // Return the OAuth URL instead of redirecting
+    return new Response(
+      JSON.stringify({ 
+        authUrl: authUrl,
+        message: 'Redirect to the provided authUrl' 
+      }),
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
   } catch (error) {
     console.error('💥 Error initiating YouTube OAuth:', error);
