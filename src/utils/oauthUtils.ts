@@ -39,10 +39,17 @@ export const initiateOAuth = async (platform: SocialPlatform) => {
   try {
     console.log(`🚀 Starting OAuth for platform: ${platform}`);
     
+    // Check session first, then get user
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.error('❌ No active session');
+      throw new Error("Please log in to connect your social accounts");
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error('❌ User not authenticated');
-      throw new Error("User not authenticated");
+      throw new Error("Authentication failed. Please refresh and try again.");
     }
 
     console.log(`✅ User authenticated: ${user.id}`);
