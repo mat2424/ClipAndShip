@@ -50,3 +50,9 @@ verify_jwt = true
 
 [functions.video-ready]
 verify_jwt = true
+
+[functions.youtube-oauth]
+verify_jwt = false
+
+[functions.youtube-oauth-initiate]
+verify_jwt = true
