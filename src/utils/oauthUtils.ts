@@ -262,41 +262,41 @@ const storePlatformConnection = async (platform: SocialPlatform, userId: string,
   }
 };
 
-// YouTube OAuth flow that goes directly to our edge function
+  // YouTube OAuth flow using Supabase's built-in Google OAuth
 const initiateYouTubeOAuth = async () => {
   try {
-    console.log('🎬 Setting up YouTube OAuth flow');
+    console.log('🎬 Setting up YouTube OAuth flow with Supabase');
     
-    // Generate state for security
-    const state = generateRandomState();
-    localStorage.setItem('youtube_oauth_state', state);
+    // Use the current origin for redirect
+    const redirectTo = `${window.location.origin}/#/oauth-callback`;
     
-    // Use Supabase project URL for the edge function
-    const supabaseUrl = "https://djmkzsxsfwyrqmhcgsyx.supabase.co";
-    const redirectUri = `${supabaseUrl}/functions/v1/youtube-oauth`;
-    
-    // Get Google Client ID from your Google Console
-    const clientId = "YOUR_GOOGLE_CLIENT_ID"; // You'll need to replace this
-    
-    if (clientId === "YOUR_GOOGLE_CLIENT_ID") {
-      throw new Error("Google Client ID not configured. Please update the client ID in oauthUtils.ts");
+    console.log('🔗 YouTube OAuth config:', {
+      redirectTo,
+      scopes: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
+      currentUrl: window.location.href
+    });
+
+    // Use Supabase's built-in Google OAuth with YouTube scopes
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectTo,
+        scopes: 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube',
+        queryParams: {
+          platform: 'youtube',
+          access_type: 'offline',
+          prompt: 'consent'
+        }
+      }
+    });
+
+    if (error) {
+      console.error('❌ YouTube OAuth initiation failed:', error);
+      throw error;
     }
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${clientId}&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `response_type=code&` +
-      `scope=${encodeURIComponent('https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube')}&` +
-      `access_type=offline&` +
-      `prompt=consent&` +
-      `state=${state}`;
-    
-    console.log('🚀 Redirecting to YouTube OAuth:', authUrl);
-    
-    // Redirect to Google OAuth
-    window.location.href = authUrl;
-    
-    return { data: null, error: null };
+
+    console.log('✅ YouTube OAuth initiated successfully:', data);
+    return data;
   } catch (error) {
     console.error('💥 Error initiating YouTube OAuth:', error);
     throw error;
