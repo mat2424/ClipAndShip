@@ -279,6 +279,123 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          payload: Json | null
+          result: Json | null
+          status: string
+          user_id: string
+          webhook_id: string
+          webhook_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          status?: string
+          user_id: string
+          webhook_id: string
+          webhook_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          result?: Json | null
+          status?: string
+          user_id?: string
+          webhook_id?: string
+          webhook_type?: string
+        }
+        Relationships: []
+      }
+      youtube_tokens: {
+        Row: {
+          access_token: string
+          channel_name: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          refresh_token: string
+          scope: string
+          token_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          channel_name?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          refresh_token: string
+          scope?: string
+          token_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          channel_name?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string
+          scope?: string
+          token_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      youtube_uploads: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          privacy_status: string
+          processing_status: string | null
+          title: string
+          upload_status: string
+          user_id: string
+          video_id: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          privacy_status?: string
+          processing_status?: string | null
+          title: string
+          upload_status?: string
+          user_id: string
+          video_id: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          privacy_status?: string
+          processing_status?: string | null
+          title?: string
+          upload_status?: string
+          user_id?: string
+          video_id?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

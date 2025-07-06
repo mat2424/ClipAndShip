@@ -45,14 +45,21 @@ verify_jwt = true
 [functions.upload-to-tiktok]
 verify_jwt = true
 
-[functions.upload-to-youtube]
-verify_jwt = true
-
 [functions.video-ready]
 verify_jwt = true
 
-[functions.youtube-oauth]
+# New YouTube Functions (Robust Implementation)
+[functions.youtube-oauth-setup]
+verify_jwt = true
+
+[functions.youtube-oauth-callback]
 verify_jwt = false
 
-[functions.youtube-oauth-initiate]
-verify_jwt = true
+[functions.youtube-token-refresh]
+verify_jwt = false
+
+[functions.youtube-upload]
+verify_jwt = false
+
+[functions.n8n-youtube-webhook]
+verify_jwt = false
