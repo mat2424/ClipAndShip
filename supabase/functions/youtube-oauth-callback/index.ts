@@ -91,22 +91,64 @@ serve(async (req) => {
 
     console.log(`✅ [${requestId}] Tokens received successfully`);
 
-    // Verify access token with YouTube API
-    const channelResponse = await fetch(
-      'https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true',
-      {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Accept': 'application/json',
-        },
-      }
-    );
-
+    // Verify access token and get channel info with YouTube API
     let channelName = 'YouTube Channel';
-    if (channelResponse.ok) {
-      const channelData = await channelResponse.json();
-      channelName = channelData.items?.[0]?.snippet?.title || 'YouTube Channel';
-      console.log(`📺 [${requestId}] Channel verified: ${channelName}`);
+    let channelId = null;
+    
+    try {
+      console.log(`🔍 [${requestId}] Fetching channel info from YouTube API...`);
+      
+      const channelResponse = await fetch(
+        'https://www.googleapis.com/youtube/v3/channels?part=snippet,id&mine=true',
+        {
+          headers: {
+            'Authorization': `Bearer ${tokenData.access_token}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      console.log(`🔍 [${requestId}] YouTube API response status: ${channelResponse.status}`);
+      
+      if (channelResponse.ok) {
+        const channelData = await channelResponse.json();
+        console.log(`📋 [${requestId}] Channel API response:`, JSON.stringify(channelData, null, 2));
+        
+        if (channelData.items && channelData.items.length > 0) {
+          const channel = channelData.items[0];
+          channelName = channel.snippet?.title || 'YouTube Channel';
+          channelId = channel.id;
+          console.log(`✅ [${requestId}] Channel verified: ${channelName} (ID: ${channelId})`);
+        } else {
+          console.warn(`⚠️ [${requestId}] No channels found in API response`);
+        }
+      } else {
+        const errorText = await channelResponse.text();
+        console.error(`❌ [${requestId}] YouTube API error (${channelResponse.status}):`, errorText);
+        
+        // Try alternative API call for channel info
+        console.log(`🔄 [${requestId}] Trying alternative API call...`);
+        const altResponse = await fetch(
+          'https://www.googleapis.com/youtube/v3/channels?part=snippet&forUsername=mine',
+          {
+            headers: {
+              'Authorization': `Bearer ${tokenData.access_token}`,
+              'Accept': 'application/json',
+            },
+          }
+        );
+        
+        if (altResponse.ok) {
+          const altData = await altResponse.json();
+          if (altData.items && altData.items.length > 0) {
+            channelName = altData.items[0].snippet?.title || 'YouTube Channel';
+            channelId = altData.items[0].id;
+            console.log(`✅ [${requestId}] Channel found via alternative API: ${channelName}`);
+          }
+        }
+      }
+    } catch (apiError) {
+      console.error(`💥 [${requestId}] YouTube API call failed:`, apiError);
     }
 
     // Calculate token expiration
@@ -122,7 +164,7 @@ serve(async (req) => {
         expires_at: expiresAt,
         channel_name: channelName,
         token_type: tokenData.token_type || 'Bearer',
-        scope: tokenData.scope || 'https://www.googleapis.com/auth/youtube.upload'
+        scope: tokenData.scope || 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly'
       }, {
         onConflict: 'user_id'
       })

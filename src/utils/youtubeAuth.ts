@@ -101,6 +101,75 @@ export async function disconnectYouTube(): Promise<void> {
 }
 
 /**
+ * Refresh YouTube token and channel info
+ */
+export async function refreshYouTubeToken(): Promise<void> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase.functions.invoke('youtube-token-refresh', {
+      body: { userId: user.id }
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    console.log('YouTube token refreshed successfully');
+  } catch (error) {
+    console.error('Failed to refresh YouTube token:', error);
+    throw error;
+  }
+}
+
+/**
+ * Test YouTube API connection
+ */
+export async function testYouTubeConnection(): Promise<{ success: boolean; channelName?: string; error?: string }> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const { data: tokens } = await supabase
+      .from('youtube_tokens')
+      .select('access_token, channel_name')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!tokens) {
+      return { success: false, error: 'No YouTube tokens found' };
+    }
+
+    // Test API call
+    const response = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
+      headers: {
+        'Authorization': `Bearer ${tokens.access_token}`,
+        'Accept': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const channelName = data.items?.[0]?.snippet?.title || 'Unknown Channel';
+      return { success: true, channelName };
+    } else {
+      const errorText = await response.text();
+      return { success: false, error: `API call failed: ${response.status} - ${errorText}` };
+    }
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
+/**
  * Open YouTube OAuth in popup window
  */
 export function openYouTubeAuthPopup(): Promise<void> {

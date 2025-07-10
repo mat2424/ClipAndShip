@@ -8,6 +8,7 @@ import {
   getYouTubeAuthStatus, 
   openYouTubeAuthPopup, 
   disconnectYouTube,
+  testYouTubeConnection,
   type YouTubeAuthStatus 
 } from '@/utils/youtubeAuth';
 
@@ -47,9 +48,19 @@ export const YouTubeConnector: React.FC = () => {
       });
     } catch (error) {
       console.error('Connection failed:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to connect YouTube account";
+      
+      // Provide specific guidance for common errors
+      let description = errorMessage;
+      if (errorMessage.includes('cancelled') || errorMessage.includes('closed')) {
+        description = "Connection was cancelled. If you saw a security warning, click 'Advanced' then 'Go to site (unsafe)' to proceed.";
+      } else if (errorMessage.includes('popup')) {
+        description = "Please allow popups for this site and try again.";
+      }
+      
       toast({
         title: "Connection Failed",
-        description: error instanceof Error ? error.message : "Failed to connect YouTube account",
+        description,
         variant: "destructive",
       });
     } finally {
@@ -76,6 +87,30 @@ export const YouTubeConnector: React.FC = () => {
     }
   };
 
+  const handleTest = async () => {
+    try {
+      const result = await testYouTubeConnection();
+      if (result.success) {
+        toast({
+          title: "Connection Test Successful",
+          description: `Channel: ${result.channelName}`,
+        });
+      } else {
+        toast({
+          title: "Connection Test Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Test Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -96,6 +131,10 @@ export const YouTubeConnector: React.FC = () => {
         </CardTitle>
         <CardDescription>
           Connect your YouTube account to enable video uploads
+          <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+            <strong>Note:</strong> You may see "Google hasn't verified this app" - this is normal for testing. 
+            Click "Advanced" → "Go to {window.location.hostname} (unsafe)" to continue.
+          </div>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -113,13 +152,22 @@ export const YouTubeConnector: React.FC = () => {
               </div>
             )}
             
-            <Button 
-              onClick={handleDisconnect}
-              variant="outline"
-              size="sm"
-            >
-              Disconnect
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleTest}
+                variant="outline"
+                size="sm"
+              >
+                Test Connection
+              </Button>
+              <Button 
+                onClick={handleDisconnect}
+                variant="outline"
+                size="sm"
+              >
+                Disconnect
+              </Button>
+            </div>
           </>
         ) : (
           <>
@@ -133,23 +181,36 @@ export const YouTubeConnector: React.FC = () => {
               )}
             </div>
             
-            <Button 
-              onClick={handleConnect}
-              disabled={isConnecting}
-              className="w-full"
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Youtube className="mr-2 h-4 w-4" />
-                  Connect YouTube
-                </>
+            <div className="space-y-2">
+              <Button 
+                onClick={handleConnect}
+                disabled={isConnecting}
+                className="w-full"
+              >
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Youtube className="mr-2 h-4 w-4" />
+                    Connect YouTube
+                  </>
+                )}
+              </Button>
+              
+              {authStatus.error && (
+                <Button 
+                  onClick={checkAuthStatus}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Refresh Status
+                </Button>
               )}
-            </Button>
+            </div>
           </>
         )}
       </CardContent>
