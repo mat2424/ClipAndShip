@@ -67,12 +67,17 @@ serve(async (req) => {
     // Extract and validate user ID from state
     const [userId, timestamp] = state.split('-');
     if (!userId || !timestamp) {
+      console.error(`❌ [${requestId}] Invalid state format: ${state}`);
       throw new Error('Invalid state parameter');
     }
 
-    // Check state age (max 30 minutes)
+    // Check state age (max 2 hours instead of 30 minutes)
     const stateAge = Date.now() - parseInt(timestamp);
-    if (stateAge > 30 * 60 * 1000) {
+    const maxAge = 2 * 60 * 60 * 1000; // 2 hours
+    console.log(`🕐 [${requestId}] State age: ${Math.round(stateAge / 1000)}s (max: ${Math.round(maxAge / 1000)}s)`);
+
+    if (stateAge > maxAge) {
+      console.error(`❌ [${requestId}] OAuth session expired. Age: ${Math.round(stateAge / 1000)}s, Max: ${Math.round(maxAge / 1000)}s`);
       throw new Error('OAuth session expired');
     }
 
