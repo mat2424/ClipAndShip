@@ -239,34 +239,41 @@ serve(async (req) => {
             <div class="loading">Redirecting you back to the app...</div>
           </div>
           <script>
-            // Immediately notify parent window of success
-            if (window.opener) {
-              window.opener.postMessage({
-                type: 'YOUTUBE_AUTH_SUCCESS',
-                channelName: '${channelName}',
-                timestamp: Date.now()
-              }, '*');
-            }
+            console.log('YouTube OAuth success page loaded');
 
-            // Show success message briefly, then close
+            // Wait a moment for the page to fully load, then notify parent
             setTimeout(() => {
-              if (window.opener) {
-                window.close();
-              } else {
-                // Fallback redirect if not in popup
-                window.location.href = '${req.headers.get('origin') || 'https://clipandship.ca'}/app';
+              console.log('Sending success message to parent window');
+              if (window.opener && !window.opener.closed) {
+                try {
+                  window.opener.postMessage({
+                    type: 'YOUTUBE_AUTH_SUCCESS',
+                    channelName: '${channelName}',
+                    timestamp: Date.now()
+                  }, '*');
+                  console.log('Success message sent to parent');
+                } catch (e) {
+                  console.error('Failed to send message to parent:', e);
+                }
               }
-            }, 1500);
 
-            // Backup close attempt in case the first one fails
-            setTimeout(() => {
-              try {
-                window.close();
-              } catch (e) {
-                console.log('Window close failed, redirecting...');
-                window.location.href = '${req.headers.get('origin') || 'https://clipandship.ca'}/app';
-              }
-            }, 3000);
+              // Close the popup after a longer delay to ensure message is received
+              setTimeout(() => {
+                console.log('Attempting to close popup window');
+                try {
+                  if (window.opener && !window.opener.closed) {
+                    window.close();
+                  } else {
+                    // If no opener or opener is closed, redirect
+                    console.log('No valid opener, redirecting...');
+                    window.location.href = '${req.headers.get('origin') || 'https://clipandship.ca'}/app';
+                  }
+                } catch (e) {
+                  console.error('Failed to close window:', e);
+                  window.location.href = '${req.headers.get('origin') || 'https://clipandship.ca'}/app';
+                }
+              }, 2500);
+            }, 500);
           </script>
         </body>
       </html>
