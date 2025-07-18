@@ -13,12 +13,32 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      video_idea_id, 
-      approved, 
-      rejection_reason, 
-      social_accounts, 
-      selected_platforms 
+    // Get the user from the authorization header
+    const authHeader = req.headers.get('Authorization');
+    let userEmail = null;
+
+    if (authHeader) {
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      );
+
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+
+      if (!userError && user) {
+        userEmail = user.email;
+        console.log('🔐 User email retrieved:', userEmail);
+      }
+    }
+
+    const {
+      video_idea_id,
+      approved,
+      rejection_reason,
+      social_accounts,
+      selected_platforms
     } = await req.json();
 
     if (!video_idea_id || typeof approved !== 'boolean') {
@@ -73,7 +93,8 @@ serve(async (req) => {
           video_idea: videoIdea.idea_text,
           selected_platforms: selected_platforms || videoIdea.selected_platforms,
           video_url: videoIdea.video_url || videoIdea.preview_video_url,
-          approved: true
+          approved: true,
+          user_email: userEmail
         };
 
         // Add social accounts if provided (new workflow)

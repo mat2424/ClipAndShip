@@ -39,16 +39,42 @@ serve(async (req) => {
     if (payload.phase === 'approval') {
       // Video has been generated and is ready for approval
       console.log('✅ Updating video_ideas for approval phase');
-      
+
+      const updateData: any = {
+        status: 'completed',
+        approval_status: 'ready_for_approval',
+        video_url: payload.video_url,
+        preview_video_url: payload.video_url, // Same URL for both fields
+        updated_at: new Date().toISOString()
+      };
+
+      // Add titles and descriptions if provided
+      if (payload.titles_descriptions) {
+        if (payload.titles_descriptions.youtube?.title) {
+          updateData.youtube_title = payload.titles_descriptions.youtube.title;
+        }
+        if (payload.titles_descriptions.tiktok?.title) {
+          updateData.tiktok_title = payload.titles_descriptions.tiktok.title;
+        }
+        if (payload.titles_descriptions.instagram?.title) {
+          updateData.instagram_title = payload.titles_descriptions.instagram.title;
+        }
+        if (payload.titles_descriptions.environment_prompt) {
+          updateData.environment_prompt = payload.titles_descriptions.environment_prompt;
+        }
+        if (payload.titles_descriptions.sound_prompt) {
+          updateData.sound_prompt = payload.titles_descriptions.sound_prompt;
+        }
+      }
+
+      // Add caption if provided
+      if (payload.caption) {
+        updateData.caption = payload.caption;
+      }
+
       const { error } = await supabase
         .from('video_ideas')
-        .update({
-          status: 'completed',
-          approval_status: 'preview_ready',
-          video_url: payload.video_url,
-          preview_video_url: payload.video_url, // Same URL for both fields
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', payload.video_idea_id);
 
       if (error) {

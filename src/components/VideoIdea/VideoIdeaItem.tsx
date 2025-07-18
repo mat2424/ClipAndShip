@@ -1,7 +1,10 @@
 
-import { ExternalLink, Eye, Upload } from "lucide-react";
+import { ExternalLink, Eye, Upload, Check, X, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoIdeaStatusBadge } from "./VideoIdeaStatusBadge";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface VideoIdea {
   id: string;
@@ -25,6 +28,7 @@ interface VideoIdea {
 interface VideoIdeaItemProps {
   idea: VideoIdea;
   onPreviewClick: (idea: VideoIdea) => void;
+  onApprovalChange?: () => void;
 }
 
 const getPlatformLinks = (idea: VideoIdea) => {
@@ -48,7 +52,54 @@ const shouldShowPublishButton = (idea: VideoIdea) => {
   return idea.approval_status === 'ready_for_approval' && idea.video_url;
 };
 
-export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
+const shouldShowApprovalButtons = (idea: VideoIdea) => {
+  return idea.approval_status === 'ready_for_approval' && idea.video_url;
+};
+
+const getVideoUrl = (idea: VideoIdea) => {
+  return idea.video_url || idea.preview_video_url;
+};
+
+export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoIdeaItemProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const { toast } = useToast();
+
+  const handleApproval = async (approved: boolean) => {
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.functions.invoke('approve-video', {
+        body: {
+          video_idea_id: idea.id,
+          approved: approved,
+          rejection_reason: approved ? null : 'Rejected by user',
+          selected_platforms: idea.selected_platforms
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: approved ? "Video Approved!" : "Video Rejected",
+        description: approved
+          ? "Your video is now being published to your selected platforms."
+          : "The video has been rejected and will not be published.",
+      });
+
+      if (onApprovalChange) {
+        onApprovalChange();
+      }
+    } catch (error) {
+      console.error('Error processing approval:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process approval. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="p-6 bg-cool-turquoise">
       <div className="flex justify-between items-start mb-2">
@@ -59,7 +110,31 @@ export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
           <span className="text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800">
             {getStatusDisplay(idea)}
           </span>
-          
+
+          {/* Approval Buttons for ready_for_approval status */}
+          {shouldShowApprovalButtons(idea) && (
+            <>
+              <Button
+                size="sm"
+                onClick={() => handleApproval(true)}
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Check className="w-3 h-3 mr-1" />
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleApproval(false)}
+                disabled={isSubmitting}
+                variant="destructive"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Reject
+              </Button>
+            </>
+          )}
+
           {/* Preview Button for old approval system */}
           {idea.approval_status === 'preview_ready' && idea.preview_video_url && (
             <Button
@@ -72,15 +147,15 @@ export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
             </Button>
           )}
 
-          {/* Publish Button for new approval workflow */}
-          {shouldShowPublishButton(idea) && (
+          {/* Show Video Toggle Button */}
+          {getVideoUrl(idea) && (
             <Button
               size="sm"
-              onClick={() => onPreviewClick(idea)}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => setShowVideo(!showVideo)}
+              variant="outline"
             >
-              <Upload className="w-3 h-3 mr-1" />
-              Publish Video
+              <PlayCircle className="w-3 h-3 mr-1" />
+              {showVideo ? 'Hide' : 'Show'} Video
             </Button>
           )}
         </div>
@@ -93,6 +168,20 @@ export const VideoIdeaItem = ({ idea, onPreviewClick }: VideoIdeaItemProps) => {
           </span>
         ))}
       </div>
+
+      {/* Video Preview Section */}
+      {showVideo && getVideoUrl(idea) && (
+        <div className="mb-4 bg-black rounded-lg overflow-hidden">
+          <video
+            src={getVideoUrl(idea)}
+            controls
+            className="w-full max-h-96"
+            poster="/placeholder.svg"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      )}
       
       {/* Caption preview */}
       {idea.caption && (

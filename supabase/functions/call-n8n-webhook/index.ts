@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,14 +13,34 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      phase, 
-      video_idea_id, 
-      video_idea, 
-      selected_platforms, 
+    // Get the user from the authorization header
+    const authHeader = req.headers.get('Authorization');
+    let userEmail = null;
+
+    if (authHeader) {
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      );
+
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+
+      if (!userError && user) {
+        userEmail = user.email;
+        console.log('🔐 User email retrieved:', userEmail);
+      }
+    }
+
+    const {
+      phase,
+      video_idea_id,
+      video_idea,
+      selected_platforms,
       upload_targets,
       social_accounts,
-      use_ai_voice, 
+      use_ai_voice,
       preview_video_url,
       voice_file_url
     } = await req.json();
@@ -50,7 +71,8 @@ serve(async (req) => {
         selected_platforms: selected_platforms || upload_targets,
         social_accounts: social_accounts || {},
         use_ai_voice: use_ai_voice || true,
-        voice_file_url: voice_file_url || null
+        voice_file_url: voice_file_url || null,
+        user_email: userEmail
       };
     } else if (phase === 'publish') {
       // Phase 2: Publish to platforms with tokens
@@ -61,7 +83,8 @@ serve(async (req) => {
         upload_targets: upload_targets || selected_platforms,
         selected_platforms: selected_platforms || upload_targets,
         social_accounts: social_accounts || {},
-        preview_video_url
+        preview_video_url,
+        user_email: userEmail
       };
     } else {
       throw new Error(`Invalid phase: ${phase}. Must be 'preview' or 'publish'`);

@@ -50,6 +50,7 @@ export const VideoIdeasList = () => {
                 key={idea.id}
                 idea={idea}
                 onPreviewClick={setSelectedVideoForPreview}
+                onApprovalChange={refetchVideoIdeas}
               />
             ))
           )}

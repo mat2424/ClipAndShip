@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,26 @@ serve(async (req) => {
   }
 
   try {
+    // Get the user from the authorization header
+    const authHeader = req.headers.get('Authorization');
+    let userEmail = null;
+
+    if (authHeader) {
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      );
+
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+
+      if (!userError && user) {
+        userEmail = user.email;
+        console.log('🔐 User email retrieved:', userEmail);
+      }
+    }
+
     const {
       video_idea,
       upload_targets,
@@ -91,6 +112,7 @@ serve(async (req) => {
       social_accounts,
       use_ai_voice,
       voice_file_url,
+      user_email: userEmail,
       timestamp: new Date().toISOString()
     };
 
