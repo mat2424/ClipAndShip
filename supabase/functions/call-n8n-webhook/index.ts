@@ -30,6 +30,10 @@ serve(async (req) => {
       if (!userError && user) {
         userEmail = user.email;
         console.log('🔐 User email retrieved:', userEmail);
+        console.log('🔐 User object:', JSON.stringify(user, null, 2));
+      } else {
+        console.log('❌ Failed to get user:', userError);
+        console.log('❌ Auth header:', authHeader ? 'Present' : 'Missing');
       }
     }
 
