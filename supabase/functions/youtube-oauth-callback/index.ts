@@ -65,9 +65,18 @@ serve(async (req) => {
     }
 
     // Extract and validate user ID from state
-    const [userId, timestamp] = state.split('-');
-    if (!userId || !timestamp) {
+    // State format: userId-timestamp-randomUUID
+    const stateParts = state.split('-');
+    if (stateParts.length < 2) {
       console.error(`❌ [${requestId}] Invalid state format: ${state}`);
+      throw new Error('Invalid state parameter');
+    }
+
+    const userId = stateParts[0];
+    const timestamp = stateParts[1];
+
+    if (!userId || !timestamp) {
+      console.error(`❌ [${requestId}] Missing userId or timestamp in state: ${state}`);
       throw new Error('Invalid state parameter');
     }
 
