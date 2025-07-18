@@ -13,7 +13,7 @@ export const CallToActionSection = () => {
         <p className="text-gray-300 text-lg mb-8">
           No credit card required. Get started in minutes and see the power of AI-driven video creation.
         </p>
-        <Link to="/app" className="inline-block">
+        <Link to="/auth" className="inline-block">
           <Button className="bg-cool-turquoise hover:bg-cool-turquoise-hover text-cool-charcoal px-8 py-4 text-lg font-medium rounded-lg transition-colors">
             Get Started Free
             <ArrowRight className="w-5 h-5 ml-2" />

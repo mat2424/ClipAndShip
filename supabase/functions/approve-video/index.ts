@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://cdn.skypack.dev/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -84,50 +84,102 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Trigger publishing workflow via N8N webhook
-      const webhookUrl = Deno.env.get("VIDEO_GENERATION_WEBHOOK_URL");
-      if (webhookUrl) {
-        const publishPayload: any = {
-          phase: 'publish',
-          video_idea_id: video_idea_id,
-          video_idea: videoIdea.idea_text,
-          selected_platforms: selected_platforms || videoIdea.selected_platforms,
-          video_url: videoIdea.video_url || videoIdea.preview_video_url,
-          approved: true,
-          user_email: userEmail
-        };
+      // Check user tier before processing uploads
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', videoIdea.user_id)
+        .single();
 
-        // Add social accounts if provided (new workflow)
-        if (social_accounts) {
-          publishPayload.social_accounts = social_accounts;
-          console.log('Sending social accounts to n8n:', Object.keys(social_accounts));
-        }
+      if (profileError || !profile) {
+        console.error('Profile fetch error:', profileError);
+        throw new Error('User profile not found');
+      }
 
-        // Add platform-specific titles and metadata
-        if (videoIdea.caption) publishPayload.caption = videoIdea.caption;
-        if (videoIdea.youtube_title) publishPayload.youtube_title = videoIdea.youtube_title;
-        if (videoIdea.tiktok_title) publishPayload.tiktok_title = videoIdea.tiktok_title;
-        if (videoIdea.instagram_title) publishPayload.instagram_title = videoIdea.instagram_title;
-
-        const publishResponse = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(publishPayload),
-        });
-
-        console.log(`Publishing webhook triggered with status: ${publishResponse.status}`);
+      // Filter platforms based on user tier
+      let allowedPlatforms = selected_platforms || videoIdea.selected_platforms;
+      const premiumPlatforms = ['Instagram', 'Facebook', 'Threads'];
+      const proPlatforms = ['TikTok', 'X', 'LinkedIn'];
+      
+      if (profile.subscription_tier === 'free') {
+        const originalCount = allowedPlatforms.length;
+        allowedPlatforms = allowedPlatforms.filter(platform => 
+          !premiumPlatforms.includes(platform) && !proPlatforms.includes(platform)
+        );
         
-        if (!publishResponse.ok) {
-          console.error('Publishing webhook failed:', await publishResponse.text());
+        if (allowedPlatforms.length < originalCount) {
+          console.log(`🔒 Filtered out premium/pro platforms for free user during approval. Original: ${selected_platforms || videoIdea.selected_platforms}, Allowed: ${allowedPlatforms}`);
+        }
+      } else if (profile.subscription_tier === 'premium') {
+        const originalCount = allowedPlatforms.length;
+        allowedPlatforms = allowedPlatforms.filter(platform => 
+          !proPlatforms.includes(platform)
+        );
+        
+        if (allowedPlatforms.length < originalCount) {
+          console.log(`🔒 Filtered out pro platforms for premium user during approval. Original: ${selected_platforms || videoIdea.selected_platforms}, Allowed: ${allowedPlatforms}`);
         }
       }
+
+      if (allowedPlatforms.length === 0) {
+        throw new Error('No platforms available for upload with current subscription tier');
+      }
+
+      // Send all video data to N8N webhook for processing
+      const webhookData = {
+        video_idea_id: video_idea_id,
+        video_url: videoIdea.video_url,
+        selected_platforms: allowedPlatforms,
+        social_accounts: social_accounts || {},
+        user_email: userEmail,
+        video_data: {
+          id: videoIdea.id,
+          idea_text: videoIdea.idea_text,
+          caption: videoIdea.caption,
+          youtube_title: videoIdea.youtube_title,
+          tiktok_title: videoIdea.tiktok_title,
+          instagram_title: videoIdea.instagram_title,
+          environment_prompt: videoIdea.environment_prompt,
+          sound_prompt: videoIdea.sound_prompt,
+          created_at: videoIdea.created_at,
+          user_id: videoIdea.user_id,
+          use_ai_voice: videoIdea.use_ai_voice,
+          voice_file_url: videoIdea.voice_file_url
+        }
+      };
+
+      console.log('Sending video approval data to test webhook:', webhookData);
+
+      // Get the test webhook URL from secrets
+      const testWebhookUrl = Deno.env.get('Test-Approval-Response-Webhook');
+      
+      if (!testWebhookUrl) {
+        console.error('❌ Test-Approval-Response-Webhook not configured in secrets');
+        throw new Error('Test webhook URL not configured');
+      }
+
+      console.log('🔗 Using test webhook URL:', testWebhookUrl);
+
+      // Send to test webhook
+      const webhookResponse = await fetch(testWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      if (!webhookResponse.ok) {
+        console.error('Test webhook failed:', await webhookResponse.text());
+        throw new Error('Failed to send video approval to test webhook');
+      }
+
+      console.log('✅ Video approval sent to test webhook successfully');
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Video approved and publishing initiated' 
+          message: 'Video approved and sent to test webhook for processing' 
         }),
         { 
           status: 200, 
@@ -136,24 +188,22 @@ serve(async (req) => {
       );
 
     } else {
-      console.log(`Rejecting video ${video_idea_id}`);
+      console.log(`Rejecting and deleting video ${video_idea_id}`);
       
-      // Update status to rejected
-      const { error: updateError } = await supabase
+      // Delete the video idea completely
+      const { error: deleteError } = await supabase
         .from('video_ideas')
-        .update({
-          approval_status: 'rejected',
-          rejected_reason: rejection_reason || 'Not approved by user',
-          status: 'rejected'
-        })
+        .delete()
         .eq('id', video_idea_id);
 
-      if (updateError) throw updateError;
+      if (deleteError) throw deleteError;
+
+      console.log(`✅ Video rejected and deleted successfully`);
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Video rejected successfully' 
+          message: 'Video rejected and deleted from database' 
         }),
         { 
           status: 200, 

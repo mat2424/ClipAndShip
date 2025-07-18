@@ -59,6 +59,9 @@ serve(async (req) => {
       throw new Error("VIDEO_GENERATION_WEBHOOK_URL not configured");
     }
 
+    // Get the test API key from environment
+    const testApiKey = Deno.env.get("TEST_API_KEY");
+
     // Prepare the payload based on the phase
     let payload;
     if (phase === 'preview') {
@@ -72,7 +75,8 @@ serve(async (req) => {
         social_accounts: social_accounts || {},
         use_ai_voice: use_ai_voice || true,
         voice_file_url: voice_file_url || null,
-        user_email: userEmail
+        user_email: userEmail,
+        test_api_key: testApiKey // Include the test API key
       };
     } else if (phase === 'publish') {
       // Phase 2: Publish to platforms with tokens

@@ -57,7 +57,7 @@ const OAuthCallback = () => {
             variant: "destructive",
           });
           
-          setTimeout(() => navigate("/connect-accounts"), 2000);
+        setTimeout(() => navigate("/app"), 2000);
           return;
         }
         
@@ -118,19 +118,26 @@ const OAuthCallback = () => {
             const channelData = await testResponse.json();
             console.log('✅ YouTube API test successful:', channelData);
             
-            // Store the YouTube connection in our database with verified token
+            // Extract channel name from the response
+            const channelName = channelData.items?.[0]?.snippet?.title || 'YouTube Channel';
+            console.log('📺 YouTube channel name:', channelName);
+            
+            // Store the YouTube connection in our database with verified token and channel name
+            // Use the new dedicated youtube_tokens table for YouTube connections
             const { data, error: dbError } = await supabase
-              .from('social_tokens')
+              .from('youtube_tokens')
               .upsert(
                 {
                   user_id: user.id,
-                  platform: 'youtube',
                   access_token: providerToken, // Store the provider token for YouTube API calls
-                  refresh_token: refreshToken,
-                  expires_at: expirationDate,
+                  refresh_token: refreshToken || '',
+                  expires_at: expirationDate || new Date(Date.now() + 3600000).toISOString(), // Default 1 hour if no expiry
+                  channel_name: channelName, // Store the YouTube channel name
+                  token_type: 'Bearer',
+                  scope: 'https://www.googleapis.com/auth/youtube.upload'
                 },
                 {
-                  onConflict: 'user_id,platform'
+                  onConflict: 'user_id'
                 }
               )
               .select()
@@ -147,15 +154,17 @@ const OAuthCallback = () => {
               title: "Success!",
               description: "Successfully connected your YouTube account with upload permissions.",
             });
+            
+            // Clear the URL hash to prevent reprocessing
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Redirect to /app instead of /connect-accounts so user can immediately use their connected account
+            console.log('🚀 Redirecting to /app for immediate use');
+            setTimeout(() => navigate("/app"), 1000);
           } else {
             console.error('❌ No authenticated user found');
             throw new Error('No authenticated user found');
           }
-          
-          // Clear the URL hash to prevent reprocessing
-          window.history.replaceState({}, document.title, window.location.pathname);
-          
-          setTimeout(() => navigate("/connect-accounts"), 1000);
           return;
         }
         
@@ -170,13 +179,14 @@ const OAuthCallback = () => {
             description: `Successfully connected your ${result.platform} account.`,
           });
           
-          navigate("/connect-accounts");
+          // Redirect to /app for immediate use
+          navigate("/app");
           return;
         }
         
         // No OAuth parameters found
-        console.log('⚠️ No OAuth parameters found, redirecting to connect accounts');
-        navigate("/connect-accounts");
+        console.log('⚠️ No OAuth parameters found, redirecting to app');
+        navigate("/app");
         
       } catch (error) {
         console.error("💥 OAuth callback error:", error);
@@ -197,7 +207,7 @@ const OAuthCallback = () => {
           variant: "destructive",
         });
         
-        setTimeout(() => navigate("/connect-accounts"), 2000);
+        setTimeout(() => navigate("/app"), 2000);
       } finally {
         setProcessing(false);
       }

@@ -19,11 +19,41 @@ export const useSocialTokens = () => {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('social_tokens')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Fetch both social tokens and YouTube tokens
+      const [socialTokensResponse, youtubeTokensResponse] = await Promise.all([
+        supabase
+          .from('social_tokens')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('youtube_tokens')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
+
+      const socialTokens = socialTokensResponse.data || [];
+      const youtubeTokens = youtubeTokensResponse.data || [];
+
+      // Convert YouTube tokens to social token format for compatibility
+      const convertedYoutubeTokens = youtubeTokens.map(token => ({
+        id: token.id,
+        user_id: token.user_id,
+        platform: 'youtube' as const,
+        access_token: token.access_token,
+        refresh_token: token.refresh_token,
+        expires_at: token.expires_at,
+        username: token.channel_name,
+        created_at: token.created_at,
+        updated_at: token.updated_at
+      }));
+
+      // Combine both token types, excluding YouTube from social_tokens to avoid duplicates
+      const filteredSocialTokens = socialTokens.filter(token => token.platform !== 'youtube');
+      const allTokens = [...filteredSocialTokens, ...convertedYoutubeTokens];
+
+      const { data, error } = { data: allTokens, error: socialTokensResponse.error || youtubeTokensResponse.error };
 
       if (error) {
         console.error('Error fetching social tokens:', error);
@@ -33,24 +63,40 @@ export const useSocialTokens = () => {
           variant: "destructive",
         });
       } else {
-        // Validate tokens and check if they need refresh
+        console.log('📊 Fetched social tokens:', data?.length || 0);
+        
+        // Clean up expired tokens and validate remaining ones
         const validatedAccounts = await Promise.all(
           (data || []).map(async (account) => {
-            if (account.platform === 'youtube') {
-              // Check if YouTube token is still valid
-              const isValid = await validateYouTubeToken(account.access_token);
-              if (!isValid && account.refresh_token) {
-                // Try to refresh the token
+            // Check if token is expired based on expires_at
+            if (account.expires_at && new Date(account.expires_at) <= new Date()) {
+              console.log(`⏰ Token expired for ${account.platform}, attempting refresh...`);
+              if (account.platform === 'youtube') {
                 const refreshed = await refreshYouTubeToken(account);
-                if (refreshed) {
-                  return refreshed;
-                }
+                return refreshed;
+              }
+              // For other platforms, remove expired token
+              await supabase.from('social_tokens').delete().eq('id', account.id);
+              return null;
+            }
+
+            // For YouTube, also validate token with API
+            if (account.platform === 'youtube') {
+              const isValid = await validateYouTubeToken(account.access_token);
+              if (!isValid) {
+                console.log('🔄 YouTube token invalid, attempting refresh...');
+                const refreshed = await refreshYouTubeToken(account);
+                return refreshed;
               }
             }
+            
             return account;
           })
         );
-        setConnectedAccounts(validatedAccounts.filter(Boolean) as SocialToken[]);
+        
+        const validTokens = validatedAccounts.filter(Boolean) as SocialToken[];
+        console.log('✅ Valid tokens after validation:', validTokens.length);
+        setConnectedAccounts(validTokens);
       }
     } catch (error) {
       console.error('Error fetching connected accounts:', error);
@@ -61,27 +107,64 @@ export const useSocialTokens = () => {
 
   const validateYouTubeToken = async (token: string): Promise<boolean> => {
     try {
+      console.log('🔍 Validating YouTube token...');
       const response = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
         },
       });
-      return response.ok;
+      
+      if (response.ok) {
+        console.log('✅ YouTube token is valid');
+        return true;
+      } else {
+        console.log('❌ YouTube token validation failed:', response.status, response.statusText);
+        return false;
+      }
     } catch (error) {
-      console.error('Error validating YouTube token:', error);
+      console.error('💥 Error validating YouTube token:', error);
       return false;
     }
   };
 
   const refreshYouTubeToken = async (account: SocialToken): Promise<SocialToken | null> => {
     try {
-      // Note: In a real implementation, you'd need to handle OAuth refresh flow
-      // For now, we'll return null to indicate the token needs re-authentication
-      console.log('YouTube token needs refresh for account:', account.id);
-      return null;
+      console.log('🔄 Attempting to refresh YouTube token for account:', account.id);
+      
+      if (!account.refresh_token) {
+        console.log('❌ No refresh token available, user needs to re-authenticate');
+        // Remove expired token from database
+        await supabase.from('social_tokens').delete().eq('id', account.id);
+        return null;
+      }
+
+      // Try to refresh the token using Supabase edge function
+      const { data, error } = await supabase.functions.invoke('refresh-social-tokens', {
+        body: { 
+          platform: 'youtube',
+          refresh_token: account.refresh_token,
+          token_id: account.id
+        }
+      });
+
+      if (error || !data?.access_token) {
+        console.error('❌ Failed to refresh YouTube token:', error);
+        // Remove expired token from database
+        await supabase.from('social_tokens').delete().eq('id', account.id);
+        return null;
+      }
+
+      console.log('✅ Successfully refreshed YouTube token');
+      return data as SocialToken;
     } catch (error) {
-      console.error('Error refreshing YouTube token:', error);
+      console.error('💥 Error refreshing YouTube token:', error);
+      // Remove expired token from database on error
+      try {
+        await supabase.from('social_tokens').delete().eq('id', account.id);
+      } catch (dbError) {
+        console.error('Error cleaning up expired token:', dbError);
+      }
       return null;
     }
   };

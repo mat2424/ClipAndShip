@@ -1,10 +1,14 @@
 
+import { useState } from "react";
 import { ExternalLink, Eye, Upload, Check, X, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VideoIdeaStatusBadge } from "./VideoIdeaStatusBadge";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ExpandableCaption } from "@/components/ExpandableCaption";
+import { UserPlanDisplay } from "@/components/UserPlanDisplay";
+import { useSocialTokens } from "@/hooks/useSocialTokens";
 
 interface VideoIdea {
   id: string;
@@ -23,12 +27,15 @@ interface VideoIdea {
   youtube_title?: string | null;
   tiktok_title?: string | null;
   instagram_title?: string | null;
+  upload_status?: { [platform: string]: string } | null;
+  upload_progress?: { [platform: string]: number } | null;
+  upload_errors?: { [platform: string]: string } | null;
 }
 
 interface VideoIdeaItemProps {
   idea: VideoIdea;
   onPreviewClick: (idea: VideoIdea) => void;
-  onApprovalChange?: () => void;
+  onApprovalChange: () => void;
 }
 
 const getPlatformLinks = (idea: VideoIdea) => {
@@ -52,27 +59,53 @@ const shouldShowPublishButton = (idea: VideoIdea) => {
   return idea.approval_status === 'ready_for_approval' && idea.video_url;
 };
 
-const shouldShowApprovalButtons = (idea: VideoIdea) => {
+const shouldShowInlineApproval = (idea: VideoIdea) => {
   return idea.approval_status === 'ready_for_approval' && idea.video_url;
-};
-
-const getVideoUrl = (idea: VideoIdea) => {
-  return idea.video_url || idea.preview_video_url;
 };
 
 export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoIdeaItemProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [showRejectInput, setShowRejectInput] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   const { toast } = useToast();
+  const { connectedAccounts } = useSocialTokens();
 
-  const handleApproval = async (approved: boolean) => {
+  const videoUrl = idea.video_url || idea.preview_video_url;
+
+  const handleApprove = async () => {
+    // Check if user has connected at least one social account
+    if (connectedAccounts.length === 0) {
+      toast({
+        title: "No Social Accounts Connected",
+        description: "Please connect at least one social media account before approving videos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // Build social accounts object with OAuth tokens
+      const socialAccounts: Record<string, any> = {};
+      idea.selected_platforms.forEach(platform => {
+        const token = connectedAccounts.find(t => t.platform === platform.toLowerCase());
+        if (token) {
+          socialAccounts[platform.toLowerCase()] = {
+            access_token: token.access_token,
+            refresh_token: token.refresh_token,
+            expires_at: token.expires_at
+          };
+        }
+      });
+
+      console.log('Sending approval with social accounts:', socialAccounts);
+
       const { error } = await supabase.functions.invoke('approve-video', {
         body: {
           video_idea_id: idea.id,
-          approved: approved,
-          rejection_reason: approved ? null : 'Rejected by user',
+          approved: true,
+          social_accounts: socialAccounts,
           selected_platforms: idea.selected_platforms
         }
       });
@@ -80,61 +113,156 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
       if (error) throw error;
 
       toast({
-        title: approved ? "Video Approved!" : "Video Rejected",
-        description: approved
-          ? "Your video is now being published to your selected platforms."
-          : "The video has been rejected and will not be published.",
+        title: "Video Approved!",
+        description: "Your video is now being published to your selected platforms.",
       });
 
-      if (onApprovalChange) {
-        onApprovalChange();
-      }
+      onApprovalChange();
     } catch (error) {
-      console.error('Error processing approval:', error);
+      console.error('Error approving video:', error);
       toast({
         title: "Error",
-        description: "Failed to process approval. Please try again.",
+        description: "Failed to approve video. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleReject = async () => {
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.functions.invoke('approve-video', {
+        body: {
+          video_idea_id: idea.id,
+          approved: false,
+          rejection_reason: rejectionReason || "Not satisfied with the result",
+          selected_platforms: idea.selected_platforms
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Video Rejected",
+        description: "The video has been rejected and will not be published.",
+      });
+
+      onApprovalChange();
+      setShowRejectInput(false);
+      setRejectionReason("");
+    } catch (error) {
+      console.error('Error rejecting video:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reject video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="p-6 bg-cool-turquoise">
-      <div className="flex justify-between items-start mb-2">
-        <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-2xl text-left">
-          {idea.idea_text}
-        </p>
-        <div className="flex gap-2 items-center">
-          <span className="text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+    <div className="p-6 md:p-8 bg-cool-turquoise overflow-hidden border-b border-cool-gray/20">
+      {/* Plan Display and Status Header */}
+      <div className="flex justify-between items-center mb-4">
+        <UserPlanDisplay />
+        <div className="flex gap-2 items-center flex-shrink-0">
+          <span className="text-xs md:text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
             {getStatusDisplay(idea)}
           </span>
+        </div>
+      </div>
+      {/* Inline Approval Buttons */}
+      {shouldShowInlineApproval(idea) && (
+        <div className="mb-4 flex gap-2 items-center">
+          <Button
+            onClick={handleApprove}
+            disabled={isSubmitting}
+            className="bg-green-600 hover:bg-green-700 text-white"
+            size="sm"
+          >
+            <Check className="w-4 h-4 mr-1" />
+            {isSubmitting ? "Approving..." : "Approve"}
+          </Button>
+          
+          <Button
+            onClick={() => setShowRejectInput(!showRejectInput)}
+            disabled={isSubmitting}
+            variant="outline"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
+            size="sm"
+          >
+            <X className="w-4 h-4 mr-1" />
+            Reject
+          </Button>
 
-          {/* Approval Buttons for ready_for_approval status */}
-          {shouldShowApprovalButtons(idea) && (
-            <>
-              <Button
-                size="sm"
-                onClick={() => handleApproval(true)}
-                disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Check className="w-3 h-3 mr-1" />
-                Approve
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => handleApproval(false)}
-                disabled={isSubmitting}
-                variant="destructive"
-              >
-                <X className="w-3 h-3 mr-1" />
-                Reject
-              </Button>
-            </>
+          {videoUrl && (
+            <Button
+              onClick={() => setShowVideo(!showVideo)}
+              variant="outline"
+              size="sm"
+              className="ml-2"
+            >
+              <PlayCircle className="w-4 h-4 mr-1" />
+              {showVideo ? "Hide Video" : "Show Video"}
+            </Button>
           )}
+        </div>
+      )}
 
+      {/* Rejection Reason Input */}
+      {showRejectInput && (
+        <div className="mb-4 flex gap-2 items-center">
+          <Input
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Reason for rejection (optional)"
+            className="flex-1"
+          />
+          <Button
+            onClick={handleReject}
+            disabled={isSubmitting}
+            variant="destructive"
+            size="sm"
+          >
+            {isSubmitting ? "Rejecting..." : "Confirm Reject"}
+          </Button>
+          <Button
+            onClick={() => {
+              setShowRejectInput(false);
+              setRejectionReason("");
+            }}
+            variant="outline"
+            size="sm"
+          >
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {/* Video Preview */}
+      {showVideo && videoUrl && (
+        <div className="mb-4">
+          <div className="bg-black rounded-lg overflow-hidden">
+            <video
+              src={videoUrl}
+              controls
+              className="w-full max-h-96 object-contain"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-between items-start mb-4">
+        <p className="flex-1 mr-4 text-cool-charcoal font-semibold text-lg md:text-2xl text-left break-words hyphens-auto leading-tight">
+          {idea.idea_text}
+        </p>
+        <div className="flex gap-2 items-center flex-shrink-0">
           {/* Preview Button for old approval system */}
           {idea.approval_status === 'preview_ready' && idea.preview_video_url && (
             <Button
@@ -147,56 +275,44 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
             </Button>
           )}
 
-          {/* Show Video Toggle Button */}
-          {getVideoUrl(idea) && (
+          {/* Publish Button for new approval workflow - only show if inline approval not available */}
+          {shouldShowPublishButton(idea) && !shouldShowInlineApproval(idea) && (
             <Button
               size="sm"
-              onClick={() => setShowVideo(!showVideo)}
-              variant="outline"
+              onClick={() => onPreviewClick(idea)}
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <PlayCircle className="w-3 h-3 mr-1" />
-              {showVideo ? 'Hide' : 'Show'} Video
+              <Upload className="w-3 h-3 mr-1" />
+              Publish Video
             </Button>
           )}
         </div>
       </div>
       
-      <div className="flex flex-wrap gap-1 mb-2">
+      <div className="flex flex-wrap gap-1 mb-4 overflow-hidden">
         {idea.selected_platforms.map((platform) => (
-          <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+          <span key={platform} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs md:text-sm whitespace-nowrap">
             {platform}
           </span>
         ))}
       </div>
-
-      {/* Video Preview Section */}
-      {showVideo && getVideoUrl(idea) && (
-        <div className="mb-4 bg-black rounded-lg overflow-hidden">
-          <video
-            src={getVideoUrl(idea)}
-            controls
-            className="w-full max-h-96"
-            poster="/placeholder.svg"
-          >
-            Your browser does not support the video tag.
-          </video>
-        </div>
-      )}
       
-      {/* Caption preview */}
+      {/* Expandable Caption */}
       {idea.caption && (
-        <div className="mb-2">
-          <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-            <strong>Caption:</strong> {idea.caption.substring(0, 100)}
-            {idea.caption.length > 100 && '...'}
-          </p>
+        <div className="mb-4">
+          <p className="text-sm font-medium text-black mb-2">Caption:</p>
+          <ExpandableCaption 
+            caption={idea.caption} 
+            videoId={idea.id}
+            onUpdate={() => {/* Caption updated, could refresh if needed */}}
+          />
         </div>
       )}
       
       {/* Rejection Reason */}
       {idea.approval_status === 'rejected' && idea.rejected_reason && (
-        <div className="mb-2">
-          <p className="text-xs text-red-600 bg-red-50 p-2 rounded">
+        <div className="mb-4">
+          <p className="text-xs text-red-600 bg-red-50 p-3 rounded">
             <strong className="text-xs text-black">Rejection reason:</strong> {idea.rejected_reason}
           </p>
         </div>
@@ -204,7 +320,7 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
 
       {/* Video file link */}
       {idea.video_url && (
-        <div className="mb-2">
+        <div className="mb-4">
           <a
             href={idea.video_url}
             target="_blank"
@@ -217,9 +333,45 @@ export const VideoIdeaItem = ({ idea, onPreviewClick, onApprovalChange }: VideoI
         </div>
       )}
 
+      {/* Upload Progress */}
+      {idea.upload_status && Object.keys(idea.upload_status).length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs text-gray-500 mb-2">Upload Progress:</p>
+          <div className="space-y-2">
+            {Object.entries(idea.upload_status).map(([platform, status]) => (
+              <div key={platform} className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded">
+                 <span className="capitalize text-cool-charcoal font-medium truncate max-w-[80px] md:max-w-none">{platform}</span>
+                 <div className="flex items-center space-x-2 flex-shrink-0">
+                   {status === 'uploading' && (
+                     <div className="flex items-center space-x-1">
+                       <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                       <span className="text-blue-600 text-xs md:text-sm whitespace-nowrap">Uploading...</span>
+                     </div>
+                   )}
+                   {status === 'completed' && (
+                     <span className="text-green-600 font-medium text-xs md:text-sm whitespace-nowrap">✓ Completed</span>
+                   )}
+                   {status === 'failed' && (
+                     <div className="flex items-center space-x-1">
+                       <span className="text-red-600 font-medium text-xs md:text-sm whitespace-nowrap">✗ Failed</span>
+                       {idea.upload_errors?.[platform] && (
+                         <span className="text-xs text-red-500 truncate max-w-[60px]">({idea.upload_errors[platform]})</span>
+                       )}
+                     </div>
+                   )}
+                   {status === 'pending' && (
+                     <span className="text-gray-500 text-xs md:text-sm whitespace-nowrap">Pending</span>
+                   )}
+                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Platform links */}
       {getPlatformLinks(idea).length > 0 && (
-        <div className="mb-2">
+        <div className="mb-4">
           <p className="text-xs text-gray-500 mb-1">Platform Links:</p>
           <div className="flex flex-wrap gap-2">
             {getPlatformLinks(idea).map((link) => (

@@ -46,6 +46,16 @@ export const VideoPreviewModal = ({
   const videoUrl = isNewWorkflow ? videoIdea.video_url : videoIdea.preview_video_url;
 
   const handleApprove = async () => {
+    // Check if user has connected at least one social account
+    if (connectedAccounts.length === 0) {
+      toast({
+        title: "No Social Accounts Connected",
+        description: "Please connect at least one social media account before approving videos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       if (isNewWorkflow) {

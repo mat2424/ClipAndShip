@@ -95,9 +95,9 @@ export const CreditBalance = () => {
   const tierDisplay = getTierDisplay();
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-3">
       <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-        {credits} Credits
+        {credits}
       </div>
       <div className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 ${tierDisplay.color}`}>
         {subscriptionTier !== 'free' && <Crown className="h-3 w-3" />}

@@ -85,6 +85,34 @@ export const useVideoSubmissionWithTokens = () => {
     setLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Get user profile to check tier
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('credits, subscription_tier')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) throw new Error("Profile not found");
+
+      // Validate tier-based platform access
+      const premiumPlatforms = ['TikTok', 'Instagram', 'Facebook', 'X', 'LinkedIn'];
+      const selectedPremiumPlatforms = selectedPlatforms.filter(platform => 
+        premiumPlatforms.includes(platform)
+      );
+
+      if (selectedPremiumPlatforms.length > 0 && profile.subscription_tier === 'free') {
+        toast({
+          title: "Premium Feature Required",
+          description: `${selectedPremiumPlatforms.join(', ')} require${selectedPremiumPlatforms.length === 1 ? 's' : ''} a premium subscription. Please upgrade your account.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Validate platform connections
       const validation = validatePlatformConnections(selectedPlatforms);
       if (!validation.valid) {
@@ -96,18 +124,8 @@ export const useVideoSubmissionWithTokens = () => {
         return false;
       }
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       // Check credits
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile || profile.credits < 1) {
+      if (profile.credits < 1) {
         toast({
           title: "Insufficient Credits",
           description: "You need at least 1 credit to generate a video. Please purchase credits.",

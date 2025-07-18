@@ -8,20 +8,23 @@ const PLATFORMS = [{
   name: "YouTube",
   tier: "free"
 }, {
-  name: "TikTok",
-  tier: "free"
-}, {
   name: "Instagram",
-  tier: "free"
+  tier: "premium"
 }, {
-  name: "Facebook",
+  name: "Facebook", 
+  tier: "premium"
+}, {
+  name: "Threads",
   tier: "premium"
 }, {
   name: "X",
-  tier: "premium"
+  tier: "pro"
 }, {
   name: "LinkedIn",
-  tier: "premium"
+  tier: "pro"
+}, {
+  name: "TikTok",
+  tier: "pro"
 }];
 
 interface PlatformSelectorProps {
@@ -39,7 +42,9 @@ export const PlatformSelector = ({
 
   const canSelectPlatform = (platform: { name: string; tier: string }) => {
     if (platform.tier === "free") return true;
-    return userTier === "premium" || userTier === "pro";
+    if (platform.tier === "premium") return userTier === "premium" || userTier === "pro";
+    if (platform.tier === "pro") return userTier === "pro";
+    return false;
   };
 
   const handlePlatformChange = (platform: string, checked: boolean) => {
@@ -63,7 +68,8 @@ export const PlatformSelector = ({
 
   return (
     <div>
-      <Label>Select Platforms *</Label>
+      <Label>Select Platforms (Optional)</Label>
+      <p className="text-sm text-cool-gray mt-1 mb-2">Choose platforms to publish to, or leave empty to generate video only</p>
       <div className="grid grid-cols-2 gap-2 mt-2">
         {PLATFORMS.map(platform => {
           const isLocked = !canSelectPlatform(platform);
@@ -84,9 +90,11 @@ export const PlatformSelector = ({
                   <span className="text-white text-lg truncate">{platform.name}</span>
                   {isLocked && <Lock className="h-3 w-3 flex-shrink-0" />}
                 </Label>
-                {isLocked && (
-                  <span className="text-xs text-orange-600 font-medium self-start">Premium</span>
-                )}
+                 {isLocked && (
+                   <span className="text-xs text-orange-600 font-medium self-start">
+                     {PLATFORMS.find(p => p.name === platform.name)?.tier === "pro" ? "Pro" : "Premium"}
+                   </span>
+                 )}
               </div>
             </div>
           );
@@ -94,8 +102,15 @@ export const PlatformSelector = ({
       </div>
       {userTier === 'free' && (
         <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-800">
-            <strong>Upgrade to Premium</strong> to unlock Facebook, X, and LinkedIn platforms for wider reach!
+          <p className="text-sm text-blue-600">
+            <strong>Upgrade to Premium</strong> to unlock Instagram, Facebook, and Threads platforms for wider reach!
+          </p>
+        </div>
+      )}
+      {userTier === 'premium' && (
+        <div className="mt-2 p-3 bg-purple-50 border border-purple-200 rounded-md">
+          <p className="text-sm text-blue-600">
+            <strong>Upgrade to Pro</strong> to unlock X, TikTok, and LinkedIn platforms for maximum reach!
           </p>
         </div>
       )}

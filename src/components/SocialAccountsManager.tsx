@@ -1,42 +1,120 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SocialPlatformButton } from "./SocialPlatformButton";
 import { ConnectedAccountCard } from "./ConnectedAccountCard";
+import { YouTubeConnector } from "./YouTubeConnector";
 import { useSocialTokens } from "@/hooks/useSocialTokens";
 import { initiateOAuth } from "@/utils/oauthUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 
 type SocialPlatform = Database["public"]["Enums"]["social_platform"];
 
-const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean; customFlow?: boolean }[] = [
-  { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "/lovable-uploads/cd7cb743-01ad-4a0d-a56b-f5e956d0f595.png" },
-  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/bab6eff1-1fa1-4a04-b442-3d1c40472cef.png", customFlow: true },
-  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/ddef2800-d5db-4e6d-8e87-e8d228c761a1.png", customFlow: true },
-  { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "/lovable-uploads/60a3a2a1-4e39-46b3-8d72-382997a7b692.png", locked: true },
-  { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "/lovable-uploads/e602472a-fd56-45af-9504-e325e09c74f3.png", locked: true },
-  { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "/lovable-uploads/34be507c-e645-4c1e-bbb1-b9a922babca0.png", locked: true },
+const platforms: { platform: SocialPlatform; name: string; color: string; icon: string; locked?: boolean; customFlow?: boolean; tier?: string }[] = [
+  { platform: "youtube", name: "YouTube", color: "bg-red-600 hover:bg-red-700", icon: "/lovable-uploads/cd7cb743-01ad-4a0d-a56b-f5e956d0f595.png", tier: "free" },
+  { platform: "instagram", name: "Instagram", color: "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600", icon: "/lovable-uploads/ddef2800-d5db-4e6d-8e87-e8d228c761a1.png", customFlow: true, tier: "premium" },
+  { platform: "facebook", name: "Facebook", color: "bg-blue-600 hover:bg-blue-700", icon: "/lovable-uploads/60a3a2a1-4e39-46b3-8d72-382997a7b692.png", customFlow: true, tier: "premium" },
+  { platform: "threads", name: "Threads", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/6d56ef0c-fbdd-4dd5-926d-5913714d348a.png", customFlow: true, tier: "premium" },
+  { platform: "x", name: "X (Twitter)", color: "bg-gray-900 hover:bg-black", icon: "/lovable-uploads/e602472a-fd56-45af-9504-e325e09c74f3.png", customFlow: true, tier: "pro" },
+  { platform: "linkedin", name: "LinkedIn", color: "bg-blue-700 hover:bg-blue-800", icon: "/lovable-uploads/34be507c-e645-4c1e-bbb1-b9a922babca0.png", customFlow: true, tier: "pro" },
+  { platform: "tiktok", name: "TikTok", color: "bg-black hover:bg-gray-800", icon: "/lovable-uploads/bab6eff1-1fa1-4a04-b442-3d1c40472cef.png", customFlow: true, tier: "pro" },
 ];
 
 export const SocialAccountsManager = () => {
   const { connectedAccounts, loading, refreshAccounts, disconnectAccount } = useSocialTokens();
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState<string>('free');
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUserTier();
+    // Refresh accounts when component mounts to catch newly connected accounts
+    refreshAccounts();
+    
+    // Check if we just returned from YouTube OAuth
+    const checkYouTubeCallback = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const youtubeConnected = urlParams.get('youtube');
+      const hasYouTubeState = localStorage.getItem('youtube_oauth_initiated');
+      
+      if (youtubeConnected === 'connected' || hasYouTubeState) {
+        console.log('🎉 Detected YouTube OAuth completion, refreshing accounts...');
+        localStorage.removeItem('youtube_oauth_initiated');
+        localStorage.removeItem('youtube_oauth_timestamp');
+        
+        // Clear the URL parameters
+        const url = new URL(window.location.href);
+        url.searchParams.delete('youtube');
+        url.searchParams.delete('timestamp');
+        window.history.replaceState({}, '', url.toString());
+        
+        // Refresh accounts after a short delay to allow for database updates
+        setTimeout(() => {
+          refreshAccounts();
+          toast({
+            title: "Success!",
+            description: "YouTube account connected successfully.",
+          });
+        }, 1000);
+      }
+    };
+    
+    checkYouTubeCallback();
+  }, []);
+
+  const fetchUserTier = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserTier(profile.subscription_tier);
+      }
+    } catch (error) {
+      console.error('Error fetching user tier:', error);
+    }
+  };
 
   const handleConnect = async (platform: SocialPlatform) => {
     const platformConfig = platforms.find(p => p.platform === platform);
     
     console.log(`🎯 User clicked connect for: ${platform}`);
     
-    if (platformConfig?.locked) {
-      console.log(`🔒 Platform ${platform} is locked`);
+    // YouTube uses the new dedicated system
+    if (platform === 'youtube') {
+      console.log('🎬 YouTube uses dedicated connector, skipping generic handler');
+      return;
+    }
+    
+    // Check if platform requires pro tier
+    if (platformConfig?.tier === 'pro' && (userTier === 'free' || userTier === 'premium')) {
+      console.log(`🔒 Platform ${platform} requires pro tier`);
       toast({
-        title: "Coming Soon",
-        description: `${platformConfig.name} integration is coming soon! Stay tuned for updates.`,
-        variant: "default",
+        title: "Pro Feature",
+        description: `${platformConfig.name} is a pro feature. Upgrade your account to connect this platform.`,
+        variant: "destructive",
       });
       return;
     }
+    
+    // Check if platform requires premium tier
+    if (platformConfig?.tier === 'premium' && userTier === 'free') {
+      console.log(`🔒 Platform ${platform} requires premium tier`);
+      toast({
+        title: "Premium Feature",
+        description: `${platformConfig.name} is a premium feature. Upgrade your account to connect this platform.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
 
     setIsConnecting(platform);
     
@@ -70,18 +148,12 @@ export const SocialAccountsManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Configuration Notice for TikTok/Instagram */}
-      <div className="bg-cool-gray/20 border border-cool-gray rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-cool-charcoal mb-2">Setup Required for TikTok & Instagram</h3>
-        <div className="text-sm text-cool-charcoal/80 space-y-2">
-          <p><strong>TikTok:</strong> Update your TikTok client key in the code and add <code>https://video-spark-publish.vercel.app/oauth-callback</code> as a redirect URI in your TikTok developer portal.</p>
-          <p><strong>Instagram:</strong> Update your Instagram client ID in the code and configure the redirect URI in your Facebook Developer portal.</p>
-        </div>
-      </div>
+      {/* YouTube Dedicated Connector */}
+      <YouTubeConnector />
 
       {/* Available Platforms */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {platforms.map((platformConfig) => (
+      <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">{/* Clean 4x2 grid: 2 columns, 4 rows */}
+        {platforms.filter(p => p.platform !== 'youtube').map((platformConfig) => (
           <SocialPlatformButton
             key={platformConfig.platform}
             platform={platformConfig.platform}
@@ -91,6 +163,7 @@ export const SocialAccountsManager = () => {
             isConnected={isConnected(platformConfig.platform)}
             isConnecting={isConnecting === platformConfig.platform}
             isLocked={platformConfig.locked}
+            isPremiumRequired={(platformConfig.tier === 'pro' && (userTier === 'free' || userTier === 'premium')) || (platformConfig.tier === 'premium' && userTier === 'free')}
             onConnect={() => handleConnect(platformConfig.platform)}
           />
         ))}
